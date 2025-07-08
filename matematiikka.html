@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Matematiikkapeli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        #pisteet {
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #16a085;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 80px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #tulos {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Matematiikkapeli</h1>
+    <div id="pisteet">Pisteet: 0</div>
+
+    <p id="kysymys">Laskutoimitus latautuu...</p>
+
+    <input type="number" id="vastaus" placeholder="Vastaus">
+    <br>
+    <button onclick="tarkistaVastaus()">Tarkista</button>
+
+    <p id="tulos"></p>
+
+    <script>
+        let pisteet = 0;
+        let laskujaJaljella = 10;
+        let oikeaVastaus = 0;
+
+        function satunnainenLuku() {
+            let luku = 0;
+            while (luku === 0) {
+                luku = Math.floor(Math.random() * 31) - 15;
+            }
+            return luku;
+        }
+
+        function muotoileLuku(luku, onkoJalkimmainen) {
+            if (onkoJalkimmainen && luku < 0) {
+                return `(${luku})`;
+            }
+            return luku.toString();
+        }
+
+        function uusiLasku() {
+            if (laskujaJaljella === 0) {
+                document.getElementById("kysymys").innerText = "🎉 Peli loppui! Kokonaispisteet: " + pisteet;
+                document.getElementById("vastaus").style.display = "none";
+                document.querySelector("button").style.display = "none";
+                document.getElementById("tulos").innerText = "";
+                return;
+            }
+
+            const luku1 = satunnainenLuku();
+            const luku2 = satunnainenLuku();
+            const operaattori = Math.random() < 0.5 ? '+' : '-';
+
+            oikeaVastaus = operaattori === '+' ? luku1 + luku2 : luku1 - luku2;
+
+            const laskuTeksti = `${luku1} ${operaattori} ${muotoileLuku(luku2, true)} = ?`;
+
+            document.getElementById("kysymys").innerText = laskuTeksti;
+            document.getElementById("vastaus").value = "";
+            document.getElementById("tulos").innerText = "";
+
+            document.getElementById("vastaus").focus();
+        }
+
+        function tarkistaVastaus() {
+            const vastaus = parseInt(document.getElementById("vastaus").value.trim(), 10);
+
+            if (vastaus === oikeaVastaus) {
+                pisteet++;
+                document.getElementById("tulos").innerText = "✅ Oikein!";
+            } else {
+                document.getElementById("tulos").innerText = "❌ Väärin! Oikea vastaus oli " + oikeaVastaus;
+            }
+
+            laskujaJaljella--;
+            document.getElementById("pisteet").innerText = "Pisteet: " + pisteet;
+
+            setTimeout(uusiLasku, 1000);
+        }
+
+        // Enter-näppäimen kuuntelu
+        document.getElementById("vastaus").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                tarkistaVastaus();
+            }
+        });
+
+        uusiLasku(); // Käynnistetään peli
+    </script>
+
+</body>
+</html>
