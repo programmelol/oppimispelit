@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Oppimispeli: Kemia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        p {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        #pisteet {
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #16a085;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #tulos {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tervetuloa oppimispeliin!</h1>
+    <div id="pisteet">Pisteet: 0</div>
+
+    <p id="kysymys">Kysymys latautuu...</p>
+
+    <input type="text" id="vastaus" placeholder="Kirjoita vastaus tähän">
+    <br>
+    <button onclick="tarkistaVastaus()">Tarkista</button>
+
+    <p id="tulos"></p>
+
+    <script>
+        const kysymykset = [
+            { kysymys: "Mikä on kullan kemiallinen merkki?", oikea: "AU" },
+            { kysymys: "Mikä on vedyn kemiallinen merkki?", oikea: "H" },
+            { kysymys: "Mikä on hapen kemiallinen merkki?", oikea: "O" },
+            { kysymys: "Mikä on hiilen kemiallinen merkki?", oikea: "C" },
+            { kysymys: "Mikä on hopean kemiallinen merkki?", oikea: "AG" },
+            { kysymys: "Mikä on kloorin kemiallinen merkki?", oikea: "CL" },
+            { kysymys: "Mikä on typen kemiallinen merkki?", oikea: "N" },
+            { kysymys: "Mikä on magnesiumin kemiallinen merkki?", oikea: "MG" },
+            { kysymys: "Mikä on heliumin kemiallinen merkki?", oikea: "HE" },
+        ];
+
+        let nykyinenKysymys = 0;
+        let pisteet = 0;
+
+        function paivitaPisteet() {
+            document.getElementById("pisteet").innerText = "Pisteet: " + pisteet;
+        }
+
+        function naytaKysymys() {
+            if (nykyinenKysymys < kysymykset.length) {
+                document.getElementById("kysymys").innerText = kysymykset[nykyinenKysymys].kysymys;
+                document.getElementById("vastaus").value = "";
+                document.getElementById("tulos").innerText = "";
+            } else {
+                document.getElementById("kysymys").innerText = "🎉 Onneksi olkoon! Vastasit kaikkiin oikein.";
+                document.getElementById("vastaus").style.display = "none";
+                document.querySelector("button").style.display = "none";
+                document.getElementById("tulos").innerText = "Kokonaispisteet: " + pisteet;
+            }
+        }
+
+        function tarkistaVastaus() {
+            const vastaus = document.getElementById("vastaus").value.trim().toUpperCase();
+            const oikeaVastaus = kysymykset[nykyinenKysymys].oikea;
+
+            if (vastaus === oikeaVastaus) {
+                pisteet++;
+                paivitaPisteet();
+                document.getElementById("tulos").innerText = "✅ Oikein!";
+                nykyinenKysymys++;
+                
+                setTimeout(naytaKysymys, 1000); // Aina siirrytään seuraavaan (tai peli loppuu)
+            } else {
+                document.getElementById("tulos").innerText = "❌ Väärin. Yritä uudestaan!";
+            }
+        }
+
+        // Käynnistetään peli:
+        paivitaPisteet();
+        naytaKysymys();
+    </script>
+
+</body>
+</html>
