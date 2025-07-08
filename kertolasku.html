@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Kertolaskupeli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            padding: 20px;
+            display: flex;
+        }
+
+        .lista {
+            width: 250px;
+            text-align: left;
+            padding-right: 30px;
+            border-right: 2px solid #ccc;
+        }
+
+        .peli {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        #pisteet {
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #16a085;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 100px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #tulos {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .laskurivi {
+            margin-bottom: 10px;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+
+        #uudestaan {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lista" id="laskulista">
+        <h2>Laskut</h2>
+    </div>
+
+    <div class="peli">
+        <h1>Kertolaskupeli</h1>
+        <div id="pisteet">Pisteet: 0</div>
+
+        <p id="kysymys">Laskutoimitus latautuu...</p>
+
+        <input type="number" id="vastaus" placeholder="Vastaus">
+        <br>
+        <button onclick="tarkistaVastaus()">Tarkista</button>
+
+        <p id="tulos"></p>
+
+        <button id="uudestaan" onclick="pelaaUudestaan()">Pelaa uudestaan</button>
+    </div>
+
+    <script>
+        let pisteet, laskujaJaljella, oikeaVastaus, laskunumero, viimeisinLasku;
+
+        function satunnainenLuku() {
+            let luku = 0;
+            while (luku === 0) {
+                luku = Math.floor(Math.random() * 21) - 10;
+            }
+            return luku;
+        }
+
+        function muotoileLuku(luku, onkoJalkimmainen) {
+            return (onkoJalkimmainen && luku < 0) ? `(${luku})` : luku.toString();
+        }
+
+        function uusiLasku() {
+            if (laskujaJaljella === 0) {
+                document.getElementById("kysymys").innerText = "🎉 Peli loppui! Kokonaispisteet: " + pisteet;
+                document.getElementById("vastaus").style.display = "none";
+                document.querySelector("button").style.display = "none";
+                document.getElementById("uudestaan").style.display = "inline-block";
+                document.getElementById("tulos").innerText = "";
+                return;
+            }
+
+            const luku1 = satunnainenLuku();
+            const luku2 = satunnainenLuku();
+
+            oikeaVastaus = luku1 * luku2;
+            viimeisinLasku = `${luku1} · ${muotoileLuku(luku2, true)}`;
+
+            document.getElementById("kysymys").innerText = viimeisinLasku + " = ?";
+            document.getElementById("vastaus").value = "";
+            document.getElementById("tulos").innerText = "";
+            document.getElementById("vastaus").focus();
+        }
+
+        function tarkistaVastaus() {
+            const vastaus = parseInt(document.getElementById("vastaus").value.trim(), 10);
+            const lista = document.getElementById("laskulista");
+
+            let oikein = vastaus === oikeaVastaus;
+            if (oikein) {
+                pisteet++;
+                document.getElementById("tulos").innerText = "✅ Oikein!";
+            } else {
+                document.getElementById("tulos").innerText = "❌ Väärin! Oikea vastaus oli " + oikeaVastaus;
+            }
+
+            document.getElementById("pisteet").innerText = "Pisteet: " + pisteet;
+
+            const uusiRivi = document.createElement("div");
+            uusiRivi.className = "laskurivi";
+            uusiRivi.innerText = `${laskunumero}.    ${viimeisinLasku} = ${vastaus} ${oikein ? "✅" : "❌"}`;
+            lista.appendChild(uusiRivi);
+
+            laskunumero++;
+            laskujaJaljella--;
+
+            setTimeout(uusiLasku, 1000);
+        }
+
+        function pelaaUudestaan() {
+            pisteet = 0;
+            laskujaJaljella = 10;
+            laskunumero = 1;
+
+            document.getElementById("laskulista").innerHTML = "<h2>Laskut</h2>";
+            document.getElementById("pisteet").innerText = "Pisteet: 0";
+            document.getElementById("uudestaan").style.display = "none";
+            document.getElementById("vastaus").style.display = "inline-block";
+            document.querySelector("button").style.display = "inline-block";
+
+            uusiLasku();
+        }
+
+        document.getElementById("vastaus").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                tarkistaVastaus();
+            }
+        });
+
+        // Aloita peli automaattisesti
+        pelaaUudestaan();
+    </script>
+
+</body>
+</html>
