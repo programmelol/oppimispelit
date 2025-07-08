@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Oppimispeli: Kemia</title>
+    <title>Oppimispeli: Kemialliset merkit</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,16 +16,19 @@
             color: #2c3e50;
         }
 
-        p {
-            font-size: 18px;
-            margin: 20px 0;
+        .nappi {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
         }
 
-        #pisteet {
-            font-size: 20px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #16a085;
+        .nappi:hover {
+            background-color: #2980b9;
         }
 
         input[type="text"] {
@@ -36,41 +39,43 @@
             margin-bottom: 10px;
         }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        #tulos {
-            margin-top: 20px;
+        #pisteet, #tulos {
             font-weight: bold;
             font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .sivu {
+            display: none;
+        }
+
+        .aktiivinen {
+            display: block;
         }
     </style>
 </head>
 <body>
 
-    <h1>Tervetuloa oppimispeliin!</h1>
-    <div id="pisteet">Pisteet: 0</div>
+    <!-- Etusivu -->
+    <div id="etusivu" class="sivu aktiivinen">
+        <h1>Oppimispeli: Kemialliset merkit</h1>
+        <p>Tervetuloa oppimaan kemiallisia merkkejä!</p>
+        <p>Vastaa kysymyksiin ja kerää pisteitä. Oikeasta vastauksesta saat 1 pisteen.</p>
+        <button class="nappi" onclick="aloitaPeli()">Aloita peli</button>
+    </div>
 
-    <p id="kysymys">Kysymys latautuu...</p>
-
-    <input type="text" id="vastaus" placeholder="Kirjoita vastaus tähän">
-    <br>
-    <button onclick="tarkistaVastaus()">Tarkista</button>
-
-    <p id="tulos"></p>
+    <!-- Pelisivu -->
+    <div id="pelisivu" class="sivu">
+        <div id="pisteet">Pisteet: 0</div>
+        <p id="kysymys">Kysymys latautuu...</p>
+        <input type="text" id="vastaus" placeholder="Kirjoita vastaus tähän">
+        <br>
+        <button class="nappi" onclick="tarkistaVastaus()">Tarkista</button>
+        <p id="tulos"></p>
+    </div>
 
     <script>
+        // Kysymykset
         const kysymykset = [
             { kysymys: "Mikä on kullan kemiallinen merkki?", oikea: "AU" },
             { kysymys: "Mikä on vedyn kemiallinen merkki?", oikea: "H" },
@@ -81,10 +86,18 @@
             { kysymys: "Mikä on typen kemiallinen merkki?", oikea: "N" },
             { kysymys: "Mikä on magnesiumin kemiallinen merkki?", oikea: "MG" },
             { kysymys: "Mikä on heliumin kemiallinen merkki?", oikea: "HE" },
+            { kysymys: "Mikä on kaliumin kemiallinen merkki?", oikea: "K" },
         ];
 
         let nykyinenKysymys = 0;
         let pisteet = 0;
+
+        function aloitaPeli() {
+            document.getElementById("etusivu").classList.remove("aktiivinen");
+            document.getElementById("pelisivu").classList.add("aktiivinen");
+            naytaKysymys();
+            paivitaPisteet();
+        }
 
         function paivitaPisteet() {
             document.getElementById("pisteet").innerText = "Pisteet: " + pisteet;
@@ -98,7 +111,7 @@
             } else {
                 document.getElementById("kysymys").innerText = "🎉 Onneksi olkoon! Vastasit kaikkiin oikein.";
                 document.getElementById("vastaus").style.display = "none";
-                document.querySelector("button").style.display = "none";
+                document.querySelector("#pelisivu .nappi").style.display = "none";
                 document.getElementById("tulos").innerText = "Kokonaispisteet: " + pisteet;
             }
         }
@@ -112,16 +125,11 @@
                 paivitaPisteet();
                 document.getElementById("tulos").innerText = "✅ Oikein!";
                 nykyinenKysymys++;
-                
-                setTimeout(naytaKysymys, 1000); // Aina siirrytään seuraavaan (tai peli loppuu)
+                setTimeout(naytaKysymys, 1000);
             } else {
                 document.getElementById("tulos").innerText = "❌ Väärin. Yritä uudestaan!";
             }
         }
-
-        // Käynnistetään peli:
-        paivitaPisteet();
-        naytaKysymys();
     </script>
 
 </body>
