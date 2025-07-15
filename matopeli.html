@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Matopeli – Kertolasku</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+    }
+
+    h1 {
+      margin: 10px 0;
+    }
+
+    #main-container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #question {
+      font-size: 28px;
+      margin: 10px;
+    }
+
+    #game {
+      position: relative;
+      width: 90vw;
+      max-width: 600px;
+      aspect-ratio: 1 / 1;
+      background-color: #eee;
+      border: 2px solid #333;
+      touch-action: none;
+    }
+
+    .cell {
+      width: 5%;
+      height: 5%;
+      position: absolute;
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .snake {
+      background-color: green;
+      color: white;
+      z-index: 2;
+    }
+
+    .answer {
+      background-color: #ccc;
+    }
+
+    #info {
+      font-size: 20px;
+      min-width: 120px;
+    }
+
+    #controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .arrow-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .arrow-btn {
+      padding: 15px;
+      font-size: 20px;
+      min-width: 60px;
+      border: 2px solid #333;
+      background: #ddd;
+      border-radius: 8px;
+      user-select: none;
+    }
+
+    @media (min-width: 700px) {
+      #game {
+        width: 600px;
+        height: 600px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Matopeli – Kertolasku</h1>
+
+<div id="main-container">
+  <div id="game-container">
+    <div id="question"></div>
+    <div id="game"></div>
+    <div id="controls">
+      <div class="arrow-row">
+        <button class="arrow-btn" onclick="changeDirection(0, -1)">⬆️</button>
+      </div>
+      <div class="arrow-row">
+        <button class="arrow-btn" onclick="changeDirection(-1, 0)">⬅️</button>
+        <button class="arrow-btn" onclick="changeDirection(0, 1)">⬇️</button>
+        <button class="arrow-btn" onclick="changeDirection(1, 0)">➡️</button>
+      </div>
+    </div>
+  </div>
+  <div id="info">
+    <p><strong>Pisteet:</strong> <span id="score">0</span></p>
+    <p><strong>Haavat:</strong> <span id="wounds">0</span> / 3</p>
+  </div>
+</div>
+
+<!-- Äänet -->
+<audio id="correctSound" src="correct.mp3"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+<audio id="gameoverSound" src="gameover.mp3"></audio>
+
+<script>
+  const game = document.getElementById("game");
+  const questionDiv = document.getElementById("question");
+  const scoreEl = document.getElementById("score");
+  const woundsEl = document.getElementById("wounds");
+
+  const correctSound = document.getElementById("correctSound");
+  const wrongSound = document.getElementById("wrongSound");
+  const gameoverSound = document.getElementById("gameoverSound");
+
+  const gridSize = 20;
+  let snake = [{ x: 10, y: 10 }];
+  let direction = { x: 0, y: 0 };
+  let food = [];
+  let correctAnswer = null;
+  let score = 0;
+  let wounds = 0;
+  let gameStarted = false;
+  let intervalId = null;
+
+  function drawCell(x, y, className, content = '') {
+    const div = document.createElement("div");
+    div.className = `cell ${className}`;
+    div.style.left = `${(x / gridSize) * 100}%`;
+    div.style.top = `${(y / gridSize) * 100}%`;
+    div.textContent = content;
+    game.appendChild(div);
+  }
+
+  function drawGame() {
+    game.innerHTML = "";
+    snake.forEach(segment => drawCell(segment.x, segment.y, "snake"));
+    food.forEach(item => drawCell(item.x, item.y, "answer", item.value));
+  }
+
+  function generateQuestion() {
+    const a = Math.floor(Math.random() * 10) + 1;
+    const b = Math.floor(Math.random() * 10) + 1;
+    correctAnswer = a * b;
+    questionDiv.textContent = `${a} · ${b} = ?`;
+
+    food = [];
+    const positions = new Set();
+
+    while (food.length < 5) {
+      const x = Math.floor(Math.random() * gridSize);
+      const y = Math.floor(Math.random() * gridSize);
+      const key = `${x},${y}`;
+      if (positions.has(key) || snake.some(s => s.x === x && s.y === y)) continue;
+      positions.add(key);
+
+      let val;
+      let isCorrect = food.length === 0;
+      if (isCorrect) {
+        val = correctAnswer;
+      } else {
+        do {
+          val = Math.floor(Math.random() * 100) + 1;
+        } while (val === correctAnswer);
+      }
+
+      food.push({ x, y, value: val, correct: isCorrect });
+    }
+
+    food.sort(() => Math.random() - 0.5);
+  }
+
+  function update() {
+    if (direction.x === 0 && direction.y === 0) return;
+
+    const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+    if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
+      return gameOver();
+    }
+
+    if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+      return gameOver();
+    }
+
+    snake.unshift(head);
+
+    let hit = false;
+    for (let i = 0; i < food.length; i++) {
+      if (food[i].x === head.x && food[i].y === head.y) {
+        hit = true;
+        if (food[i].correct) {
+          correctSound.play();
+          score++;
+          generateQuestion();
+        } else {
+          wrongSound.play();
+          wounds++;
+          if (wounds >= 3) return gameOver();
+        }
+        break;
+      }
+    }
+
+    if (!hit) snake.pop();
+
+    drawGame();
+    scoreEl.textContent = score;
+    woundsEl.textContent = wounds;
+  }
+
+  function gameOver() {
+    clearInterval(intervalId);
+    gameoverSound.play();
+    alert(`Peli päättyi! Pisteet: ${score}`);
+    location.reload();
+  }
+
+  function changeDirection(x, y) {
+    if ((x !== 0 && direction.x === 0) || (y !== 0 && direction.y === 0)) {
+      direction = { x, y };
+    }
+
+    if (!gameStarted) {
+      gameStarted = true;
+      intervalId = setInterval(update, 200);
+    }
+  }
+
+  document.addEventListener("keydown", e => {
+    switch (e.key) {
+      case "ArrowUp": changeDirection(0, -1); break;
+      case "ArrowDown": changeDirection(0, 1); break;
+      case "ArrowLeft": changeDirection(-1, 0); break;
+      case "ArrowRight": changeDirection(1, 0); break;
+    }
+  });
+
+  generateQuestion();
+  drawGame();
+</script>
+
+</body>
+</html>
+
