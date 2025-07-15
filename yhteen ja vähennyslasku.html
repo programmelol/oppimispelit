@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Laskupeli</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+        .question { margin-bottom: 15px; font-size: 20px; }
+        .question-number { display: inline-block; width: 40px; text-align: right; margin-right: 15px; font-weight: bold; }
+        input[type="text"] { width: 80px; padding: 5px; font-size: 18px; margin-right: 10px; }
+        button { padding: 7px 15px; font-size: 16px; margin-top: 20px; cursor: pointer; }
+        .correct { color: green; margin-left: 10px; }
+        .incorrect { color: red; margin-left: 10px; }
+        #score { font-size: 20px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<h1>Laskupeli</h1>
+<div id="score">Pisteet: 0 / 100</div>
+<div id="questionsContainer"></div>
+<button onclick="newRound()">Arvo uudet laskutoimitukset</button>
+
+<script>
+    const questionsContainer = document.getElementById('questionsContainer');
+    const scoreElement = document.getElementById('score');
+
+    let score = 0;
+    let nextQuestionNumber = 1;
+    const maxScore = 100;
+    const questionCountPerRound = 10;
+    const min = -20, max = 20;
+
+    let questions = [];
+
+    function generateRandomNumber() {
+        let num = 0;
+        while (num === 0) {
+            num = Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        return num;
+    }
+
+    function generateQuestions() {
+        const newQuestions = [];
+        for (let i = 0; i < questionCountPerRound; i++) {
+            const num1 = generateRandomNumber();
+            const num2 = generateRandomNumber();
+            const operator = Math.random() < 0.5 ? '+' : '-';
+
+            let displayedOperator = operator;
+            let displayedNum2 = Math.abs(num2);
+
+            if ((operator === '+' && num2 < 0) || (operator === '-' && num2 < 0)) {
+                displayedOperator = operator === '+' ? '-' : '+';
+                displayedNum2 = Math.abs(num2);
+            }
+
+            const correctAnswer = operator === '+' ? num1 + num2 : num1 - num2;
+
+            newQuestions.push({
+                num1,
+                operator: displayedOperator,
+                num2: displayedNum2,
+                correctAnswer,
+                questionNumber: nextQuestionNumber++
+            });
+        }
+        return newQuestions;
+    }
+
+    function createQuestionElements() {
+        questionsContainer.innerHTML = "";
+        questions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = 'question';
+            div.innerHTML = `
+                <span class="question-number">${q.questionNumber}.</span>
+                ${q.num1} ${q.operator} ${q.num2} =
+                <input type="text" id="answer-${index}" onkeydown="if(event.key==='Enter') checkAnswer(${index})">
+                <button onclick="checkAnswer(${index})">Tarkista</button>
+                <span id="result-${index}"></span>
+            `;
+            questionsContainer.appendChild(div);
+        });
+    }
+
+    function checkAnswer(index) {
+        const answerInput = document.getElementById(`answer-${index}`);
+        const resultSpan = document.getElementById(`result-${index}`);
+        const userAnswer = parseInt(answerInput.value.trim(), 10);
+
+        if (!questions[index].answered && userAnswer === questions[index].correctAnswer) {
+            resultSpan.textContent = "✅ Oikein!";
+            resultSpan.className = "correct";
+            questions[index].answered = true;
+            score++;
+            updateScore();
+        } else if (!questions[index].answered) {
+            resultSpan.textContent = "❌ Väärin";
+            resultSpan.className = "incorrect";
+        }
+    }
+
+    function updateScore() {
+        scoreElement.textContent = `Pisteet: ${score} / ${maxScore}`;
+    }
+
+    function newRound() {
+        if (score >= maxScore) {
+            alert("Onneksi olkoon! Saavutit maksimipistemäärän!");
+            return;
+        }
+        questions = generateQuestions();
+        createQuestionElements();
+    }
+
+    // Ensimmäinen peli
+    newRound();
+</script>
+
+</body>
+</html>
+
+
