@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Yhteen- ja vähennyslaskupeli (3 lukua)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .task {
+      margin: 20px 0;
+      font-size: 20px;
+    }
+    input[type="number"] {
+      width: 60px;
+      font-size: 16px;
+    }
+    button {
+      margin-left: 10px;
+    }
+    .result {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+    #score {
+      margin: 20px 0;
+      font-size: 22px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Yhteen- ja vähennyslaskupeli</h1>
+  <div id="score">Pisteet: 0 / 100</div>
+  <div id="tasks"></div>
+  <button onclick="generateTasks()">Arvo uudet laskutoimitukset</button>
+
+  <script>
+    let totalScore = 0;
+    let taskCount = 0;
+
+    function getRandomNumber() {
+      let n;
+      do {
+        n = Math.floor(Math.random() * 41) - 20;
+      } while (n === 0);
+      return n;
+    }
+
+    function formatNumber(n, isFirst = false) {
+      if (n > 0 && !isFirst) return `+ ${n}`;
+      if (n < 0) return `- ${Math.abs(n)}`;
+      return `${n}`;
+    }
+
+    function generateTasks() {
+      const container = document.getElementById("tasks");
+
+      for (let i = 0; i < 10; i++) {
+        const a = getRandomNumber();
+        const b = getRandomNumber();
+        const c = getRandomNumber();
+        const result = a + b + c;
+
+        const taskNumber = ++taskCount;
+
+        const taskDiv = document.createElement("div");
+        taskDiv.className = "task";
+        taskDiv.innerHTML = `
+          <span style="margin-right: 15px;">${taskNumber}.</span>
+          ${a} ${formatNumber(b)} ${formatNumber(c)} = 
+          <input type="number" id="input-${taskNumber}" />
+          <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
+          <span class="result" id="result-${taskNumber}"></span>
+        `;
+        container.appendChild(taskDiv);
+      }
+    }
+
+    function checkAnswer(correctAnswer, id, button) {
+      const input = document.getElementById(`input-${id}`);
+      const resultSpan = document.getElementById(`result-${id}`);
+      const userAnswer = parseInt(input.value, 10);
+
+      if (userAnswer === correctAnswer) {
+        resultSpan.textContent = "✅ Oikein!";
+        resultSpan.style.color = "green";
+        input.disabled = true;
+        button.disabled = true;
+        totalScore++;
+        document.getElementById("score").textContent = `Pisteet: ${totalScore} / 100`;
+      } else {
+        resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
+        resultSpan.style.color = "red";
+      }
+    }
+
+    generateTasks();
+  </script>
+
+</body>
+</html>
+
