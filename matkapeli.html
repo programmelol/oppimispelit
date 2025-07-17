@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Nopeus-Matka-Aika Peli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+    .container {
+      display: inline-block;
+      text-align: left;
+      margin-top: 20px;
+    }
+    input[type="number"], input[type="text"] {
+      width: 60px;
+      margin: 5px;
+      padding: 3px;
+      font-size: 16px;
+    }
+    .equation {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+    .fraction {
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .fraction > span {
+      display: block;
+      padding: 0 5px;
+    }
+    .fraction .top {
+      border-bottom: 1px solid #000;
+    }
+    .correct {
+      color: green;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+    <div id="scoreboard" style="position:absolute; top:20px; right:30px; font-size:20px;">
+  Pisteet: <span id="score">0</span>/10
+</div>
+
+<div id="restartSection" style="margin-top: 20px; display:none;">
+  <button onclick="restartGame()">Pelaa uudestaan</button>
+</div>
+
+  <h2>Laske matka, aika tai nopeus</h2>
+  <div class="container">
+    <div id="question" class="equation"></div>
+
+    <div id="inputSection">
+      <!-- Täytetään dynaamisesti -->
+    </div>
+
+    <div id="formulaSection" style="margin-top:15px;"></div>
+    <div id="calculationSection" style="margin-top:15px;"></div>
+  </div>
+
+  <button onclick="generateProblem()" style="margin-top:20px;">Arvo uusi tehtävä</button>
+
+  <script>
+    let score = 0;
+    let gameOver = false;
+    let correctAnswer = 0;
+    let questionType = '';
+    let currentV = 0, currentT = 0, currentS = 0;
+
+    function generateProblem() {
+      document.getElementById("formulaSection").innerHTML = "";
+      document.getElementById("calculationSection").innerHTML = "";
+      document.getElementById("inputSection").innerHTML = "";
+
+      const types = ["distance", "time", "speed"];
+      questionType = types[Math.floor(Math.random() * types.length)];
+
+      currentV = Math.floor(Math.random() * 10 + 1) * 10; // 10-100 km/h
+      currentT = Math.floor(Math.random() * 5 + 1);       // 1-5 h
+      currentS = currentV * currentT;
+
+      let questionText = "";
+      let inputHTML = "";
+
+      if (questionType === "distance") {
+        questionText = `Auto kulkee nopeudella <b>${currentV} km/h</b> <b>${currentT} tunnin</b> ajan. Kuinka pitkän matkan auto kulkee?`;
+        inputHTML = `
+          <label>v = </label><input id="inputV" type="number"> km/h<br>
+          <label>t = </label><input id="inputT" type="number"> h<br>
+          <button onclick="checkInputs()">Tarkista arvot</button>
+          <span id="inputFeedback"></span>
+        `;
+        correctAnswer = currentS;
+      } else if (questionType === "time") {
+        questionText = `Auto kulkee nopeudella <b>${currentV} km/h</b> ja matka on <b>${currentS} km</b>. Kuinka kauan matka kestää?`;
+        inputHTML = `
+          <label>v = </label><input id="inputV" type="number"> km/h<br>
+          <label>s = </label><input id="inputS" type="number"> km<br>
+          <button onclick="checkInputs()">Tarkista arvot</button>
+          <span id="inputFeedback"></span>
+        `;
+        correctAnswer = currentT;
+      } else {
+        questionText = `Auto ajaa <b>${currentS} km</b> matkan <b>${currentT} tunnissa</b>. Mikä on auton nopeus?`;
+        inputHTML = `
+          <label>s = </label><input id="inputS" type="number"> km<br>
+          <label>t = </label><input id="inputT" type="number"> h<br>
+          <button onclick="checkInputs()">Tarkista arvot</button>
+          <span id="inputFeedback"></span>
+        `;
+        correctAnswer = currentV;
+      }
+
+      document.getElementById("question").innerHTML = questionText;
+      document.getElementById("inputSection").innerHTML = inputHTML;
+    }
+
+    function checkInputs() {
+      const v = parseInt(document.getElementById("inputV")?.value);
+      const t = parseInt(document.getElementById("inputT")?.value);
+      const s = parseInt(document.getElementById("inputS")?.value);
+
+      let ok = false;
+
+      if (questionType === "distance" && v === currentV && t === currentT) {
+        ok = true;
+      } else if (questionType === "time" && v === currentV && s === currentS) {
+        ok = true;
+      } else if (questionType === "speed" && t === currentT && s === currentS) {
+        ok = true;
+      }
+
+      const fb = document.getElementById("inputFeedback");
+      if (ok) {
+        fb.innerHTML = "✅ Oikein!";
+        showFormula();
+      } else {
+        fb.innerHTML = "❌ Tarkista arvot!";
+      }
+    }
+
+   function showFormula() {
+  let html = '';
+  let result = '';
+
+  if (questionType === "distance") {
+    // s = v · t
+    html = `s = v · t = ${currentV} km/h · ${currentT} h = 
+            <input id="finalInput" type="number"> km 
+            <button onclick="checkFinal(${currentS})">Tarkista</button>
+            <span id="finalFeedback" class="feedback"></span>`;
+  } else if (questionType === "time") {
+    // t = s / v
+    html = `t = <span class="fraction">
+              <span class="top">s</span>
+              <span class="bottom">v</span>
+            </span> = 
+            <span class="fraction">
+              <span class="top">${currentS} km</span>
+              <span class="bottom">${currentV} km/h</span>
+            </span> = 
+            <input id="finalInput" type="number"> h 
+            <button onclick="checkFinal(${currentT})">Tarkista</button>
+            <span id="finalFeedback" class="feedback"></span>`;
+  } else {
+    // v = s / t
+    html = `v = <span class="fraction">
+              <span class="top">s</span>
+              <span class="bottom">t</span>
+            </span> = 
+            <span class="fraction">
+              <span class="top">${currentS} km</span>
+              <span class="bottom">${currentT} h</span>
+            </span> = 
+            <input id="finalInput" type="number"> km/h 
+            <button onclick="checkFinal(${currentV})">Tarkista</button>
+            <span id="finalFeedback" class="feedback"></span>`;
+  }
+
+  document.getElementById("formulaSection").innerHTML = html;
+  document.getElementById("calculationSection").innerHTML = '';
+}
+
+
+    function checkFinal(correctValue) {
+  if (gameOver) return;
+
+  const userAnswer = Number(document.getElementById("finalInput").value.trim());
+  const feedback = document.getElementById("finalFeedback");
+
+  if (userAnswer === correctValue) {
+    feedback.textContent = " ✅ Oikein!";
+    score++;
+    document.getElementById("score").textContent = score;
+
+    if (score >= 10) {
+      gameOver = true;
+      feedback.textContent += " 🎉 Peli päättyi!";
+      document.getElementById("restartSection").style.display = "block";
+    } else {
+      setTimeout(generateQuestion, 1000);
+    }
+  } else {
+    feedback.textContent = "❌ Väärin. Yritä uudestaan.";
+  }
+}
+function restartGame() {
+  score = 0;
+  gameOver = false;
+  document.getElementById("score").textContent = score;
+  document.getElementById("restartSection").style.display = "none";
+  document.getElementById("finalFeedback").textContent = '';
+  generateQuestion();
+}
+
+
+    window.onload = generateProblem;
+  </script>
+
+</body>
+</html>

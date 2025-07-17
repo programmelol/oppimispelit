@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Sähköopin Peli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+    .container {
+      display: inline-block;
+      text-align: left;
+      margin-top: 20px;
+    }
+    input[type="number"] {
+      width: 70px;
+      margin: 5px;
+      padding: 5px;
+      font-size: 16px;
+    }
+    .equation {
+      font-size: 20px;
+      margin: 15px 0;
+    }
+    .fraction {
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .fraction > span {
+      display: block;
+      padding: 0 5px;
+    }
+    .fraction .top {
+      border-bottom: 1px solid #000;
+    }
+    .feedback {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+    .correct { color: green; }
+    .wrong { color: red; }
+  </style>
+</head>
+<body>
+
+  <div id="scoreboard" style="position:absolute; top:20px; right:30px; font-size:20px;">
+    Pisteet: <span id="score">0</span>/10
+  </div>
+
+  <h2>Laske Resistanssi, Jännite tai Virta</h2>
+
+  <div class="container">
+    <div id="question" class="equation"></div>
+    <div id="inputSection"></div>
+    <div id="formulaSection"></div>
+    <div id="calculationSection"></div>
+  </div>
+
+  <button onclick="generateProblem()" style="margin-top:20px;">Arvo uusi tehtävä</button>
+
+  <div id="restartSection" style="margin-top: 20px; display:none;">
+    <button onclick="restartGame()">Pelaa uudestaan</button>
+  </div>
+
+  <script>
+    let score = 0;
+    let gameOver = false;
+    let questionType = '';
+    let currentU = 0, currentI = 0, currentR = 0;
+
+    function generateProblem() {
+      document.getElementById("formulaSection").innerHTML = "";
+      document.getElementById("calculationSection").innerHTML = "";
+      document.getElementById("inputSection").innerHTML = "";
+
+      const types = ["resistance", "voltage", "current"];
+      questionType = types[Math.floor(Math.random() * types.length)];
+
+      currentI = Math.floor(Math.random() * 10 + 1); // 1-10 A
+      currentR = Math.floor(Math.random() * 10 + 1); // 1-10 Ω
+      currentU = currentR * currentI; // U = R * I
+
+      let questionText = "";
+      let inputHTML = "";
+
+      if (questionType === "resistance") {
+        questionText = `Virtapiirissä on jännite <b>${currentU} V</b> ja virta <b>${currentI} A</b>. Laske resistanssi.`;
+        inputHTML = `
+          U = <input id="inputU" type="number"> V<br>
+          I = <input id="inputI" type="number"> A<br>
+          <button onclick="checkInputs()">Tarkista arvot</button>
+          <span id="inputFeedback" class="feedback"></span>
+        `;
+      } else if (questionType === "voltage") {
+        questionText = `Resistanssi on <b>${currentR} Ω</b> ja virta <b>${currentI} A</b>. Laske jännite.`;
+        inputHTML = `
+          R = <input id="inputR" type="number"> Ω<br>
+          I = <input id="inputI" type="number"> A<br>
+          <button onclick="checkInputs()">Tarkista arvot</button>
+          <span id="inputFeedback" class="feedback"></span>
+        `;
+      } else {
+        questionText = `Virtapiirissä on resistanssi <b>${currentR} Ω</b> ja jännite <b>${currentU} V</b>. Laske virta.`;
+        inputHTML = `
+          U = <input id="inputU" type="number"> V<br>
+          R = <input id="inputR" type="number"> Ω<br>
+          <button onclick="checkInputs()">Tarkista arvot</button>
+          <span id="inputFeedback" class="feedback"></span>
+        `;
+      }
+
+      document.getElementById("question").innerHTML = questionText;
+      document.getElementById("inputSection").innerHTML = inputHTML;
+    }
+
+    function checkInputs() {
+      const U = parseInt(document.getElementById("inputU")?.value);
+      const I = parseInt(document.getElementById("inputI")?.value);
+      const R = parseInt(document.getElementById("inputR")?.value);
+
+      let ok = false;
+
+      if (questionType === "resistance" && U === currentU && I === currentI) {
+        ok = true;
+      } else if (questionType === "voltage" && R === currentR && I === currentI) {
+        ok = true;
+      } else if (questionType === "current" && U === currentU && R === currentR) {
+        ok = true;
+      }
+
+      const fb = document.getElementById("inputFeedback");
+      if (ok) {
+        fb.innerHTML = "✅ Oikein!";
+        fb.className = "feedback correct";
+        showFormula();
+      } else {
+        fb.innerHTML = "❌ Tarkista arvot!";
+        fb.className = "feedback wrong";
+      }
+    }
+
+    function showFormula() {
+      let html = '';
+
+      if (questionType === "resistance") {
+        html = `R = <span class="fraction">
+                  <span class="top">U</span>
+                  <span class="bottom">I</span>
+                </span> = 
+                <span class="fraction">
+                  <span class="top">${currentU} V</span>
+                  <span class="bottom">${currentI} A</span>
+                </span> = 
+                <input id="finalInput" type="number"> Ω 
+                <button onclick="checkFinal(${currentR})">Tarkista</button>
+                <span id="finalFeedback" class="feedback"></span>`;
+      } else if (questionType === "voltage") {
+        html = `U = R · I = ${currentR} Ω · ${currentI} A = 
+                <input id="finalInput" type="number"> V 
+                <button onclick="checkFinal(${currentU})">Tarkista</button>
+                <span id="finalFeedback" class="feedback"></span>`;
+      } else {
+        html = `I = <span class="fraction">
+                  <span class="top">U</span>
+                  <span class="bottom">R</span>
+                </span> = 
+                <span class="fraction">
+                  <span class="top">${currentU} V</span>
+                  <span class="bottom">${currentR} Ω</span>
+                </span> = 
+                <input id="finalInput" type="number"> A 
+                <button onclick="checkFinal(${currentI})">Tarkista</button>
+                <span id="finalFeedback" class="feedback"></span>`;
+      }
+
+      document.getElementById("formulaSection").innerHTML = html;
+    }
+
+    function checkFinal(correctValue) {
+      if (gameOver) return;
+
+      const userAnswer = Number(document.getElementById("finalInput").value.trim());
+      const feedback = document.getElementById("finalFeedback");
+
+      if (userAnswer === correctValue) {
+        feedback.textContent = "✅ Oikein!";
+        feedback.className = "feedback correct";
+        score++;
+        document.getElementById("score").textContent = score;
+
+        if (score >= 10) {
+          gameOver = true;
+          feedback.textContent += " 🎉 Peli päättyi!";
+          document.getElementById("restartSection").style.display = "block";
+        } else {
+          setTimeout(generateProblem, 1000);
+        }
+      } else {
+        feedback.textContent = "❌ Väärin. Yritä uudestaan.";
+        feedback.className = "feedback wrong";
+      }
+    }
+
+    function restartGame() {
+      score = 0;
+      gameOver = false;
+      document.getElementById("score").textContent = score;
+      document.getElementById("restartSection").style.display = "none";
+      generateProblem();
+    }
+
+    window.onload = generateProblem;
+  </script>
+
+</body>
+</html>
