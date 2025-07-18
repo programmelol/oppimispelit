@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prosenttipeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 10px;
+    }
+    h2 {
+      font-size: 22px;
+    }
+    .task {
+      margin: 20px auto;
+      font-size: 18px;
+      max-width: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .task input[type="text"], .task input[type="number"] {
+      width: 100px;
+      font-size: 18px;
+      padding: 6px;
+      margin: 5px;
+      text-align: center;
+    }
+    .task button {
+      margin-top: 5px;
+      padding: 6px 12px;
+      font-size: 16px;
+    }
+    .feedback {
+      margin-top: 5px;
+      font-weight: bold;
+    }
+    .correct { color: green; }
+    .wrong { color: red; }
+    #scoreboard {
+      font-size: 18px;
+      margin: 15px 0;
+    }
+    #newTasksBtn, #restartBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Prosentit ja desimaalit</h2>
+  <div id="scoreboard">Pisteet: <span id="score">0</span> / 30</div>
+
+  <div id="tasksContainer"></div>
+
+  <button id="newTasksBtn" onclick="generateTasks()">Arvo uudet tehtävät</button>
+
+  <div id="restartContainer" style="display:none;">
+    <button id="restartBtn" onclick="restartGame()">Aloita alusta</button>
+  </div>
+
+  <script>
+    let score = 0;
+    let answeredCount = 0;
+    const maxQuestions = 30;
+    let currentTasks = [];
+
+    function generateTasks() {
+      if (answeredCount >= maxQuestions) return;
+
+      const tasksContainer = document.getElementById("tasksContainer");
+
+      for (let i = 0; i < 10 && answeredCount < maxQuestions; i++) {
+        const taskIndex = answeredCount + 1;
+        const isDecimalToPercent = i < 5;
+        const task = document.createElement("div");
+        task.className = "task";
+
+        let question = "", correctAnswer = "", inputSuffix = "";
+
+        if (isDecimalToPercent) {
+          const decimal = (Math.random() * 0.99 + 0.01).toFixed(2);
+          const percent = Math.round(decimal * 100);
+          question = `${taskIndex}. ${decimal} = `;
+          correctAnswer = percent.toString();
+          inputSuffix = " %";
+        } else {
+          const percent = Math.floor(Math.random() * 120) + 1;
+          const decimal = (percent / 100).toFixed(2);
+          question = `${taskIndex}. ${percent} % = `;
+          correctAnswer = decimal;
+        }
+
+        task.innerHTML = `
+          <div>${question}</div>
+          <div>
+            <input type="text" id="input-${answeredCount}">${inputSuffix}
+          </div>
+          <button onclick="checkAnswer(${answeredCount}, '${correctAnswer}')">Tarkista</button>
+          <div id="feedback-${answeredCount}" class="feedback"></div>
+        `;
+
+        tasksContainer.appendChild(task);
+        currentTasks.push({ correctAnswer });
+        answeredCount++;
+      }
+
+      if (answeredCount >= maxQuestions) {
+        document.getElementById("newTasksBtn").disabled = true;
+        document.getElementById("restartContainer").style.display = "block";
+      }
+    }
+
+    function checkAnswer(index, correctAnswer) {
+      const input = document.getElementById(`input-${index}`);
+      const feedback = document.getElementById(`feedback-${index}`);
+      const userAnswer = input.value.trim().replace(",", ".");
+
+      if (feedback.textContent !== "") return; // Already answered
+
+      if (userAnswer === correctAnswer) {
+        feedback.textContent = "✅ Oikein!";
+        feedback.className = "feedback correct";
+        score++;
+        document.getElementById("score").textContent = score;
+      } else {
+        feedback.textContent = "❌ Väärin.";
+        feedback.className = "feedback wrong";
+      }
+    }
+
+    function restartGame() {
+      score = 0;
+      answeredCount = 0;
+      currentTasks = [];
+      document.getElementById("score").textContent = "0";
+      document.getElementById("tasksContainer").innerHTML = "";
+      document.getElementById("newTasksBtn").disabled = false;
+      document.getElementById("restartContainer").style.display = "none";
+      generateTasks();
+    }
+
+    window.onload = generateTasks;
+  </script>
+
+</body>
+</html>
