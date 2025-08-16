@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Laskujärjestyspeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 30px;
+    }
+    .task {
+      margin: 20px 0;
+      font-size: 20px;
+    }
+    input[type="number"] {
+      width: 80px;
+      font-size: 16px;
+      padding: 5px;
+    }
+    button {
+      font-size: 16px;
+      padding: 5px 10px;
+      margin-left: 10px;
+    }
+    .correct {
+      color: green;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .wrong {
+      color: red;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    #scoreboard {
+      font-size: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Laskujärjestyspeli</h2>
+  <p>Laske oikein. Muista kertolasku ensin!</p>
+
+  <div id="tasks"></div>
+
+  <div id="scoreboard">Pisteet: <span id="score">0</span></div>
+
+  <button onclick="generateTasks()">Arvo uudet tehtävät</button>
+
+  <script>
+    let score = 0;
+
+    function wrapIfNegative(num) {
+      return num < 0 ? `(${num})` : num;
+    }
+
+    function generateTasks() {
+      const container = document.getElementById("tasks");
+      container.innerHTML = "";
+
+      for (let i = 1; i <= 10; i++) {
+        const taskDiv = document.createElement("div");
+        taskDiv.className = "task";
+
+        const a = getRandom(-10, 10); // ensimmäinen luku
+        const b = getRandom(1, 10);   // toinen luku (positiivinen aina)
+        const c = getRandom(-10, 10); // kolmas luku (voi olla neg)
+
+        const operator = Math.random() < 0.5 ? "+" : "-";
+
+        const expression = `${a} ${operator} ${b} · ${wrapIfNegative(c)}`;
+        const correct = operator === "+"
+          ? a + b * c
+          : a - b * c;
+
+        taskDiv.innerHTML = `
+  <span style="margin-right: 15px;">${i}.</span>
+  ${expression} =
+  <input type="number" id="input${i}" onkeydown="handleEnter(event, ${i}, ${correct})">
+  <button onclick="checkAnswer(${i}, ${correct})">Tarkista</button>
+  <span id="feedback${i}"></span>
+`;
+
+        container.appendChild(taskDiv);
+      }
+    }
+
+    function checkAnswer(index, correctAnswer) {
+      const input = document.getElementById(`input${index}`);
+      const feedback = document.getElementById(`feedback${index}`);
+      const value = parseFloat(input.value.trim());
+
+      if (isNaN(value)) {
+        feedback.innerHTML = "<span class='wrong'>Anna vastaus</span>";
+        return;
+      }
+
+      if (value === correctAnswer) {
+        feedback.innerHTML = "<span class='correct'>✅ Oikein!</span>";
+        score++;
+        document.getElementById("score").textContent = score;
+      } else {
+        feedback.innerHTML = `<span class='wrong'>❌ Väärin. Oikea vastaus: ${correctAnswer}</span>`;
+      }
+
+      input.disabled = true;
+    }
+
+    function getRandom(min, max) {
+      let num = Math.floor(Math.random() * (max - min + 1)) + min;
+      // Estetään nolla b-arvoksi
+      while (num === 0) num = Math.floor(Math.random() * (max - min + 1)) + min;
+      return num;
+    }
+function handleEnter(event, index, correct) {
+  if (event.key === "Enter") {
+    checkAnswer(index, correct);
+  }
+}
+
+    window.onload = generateTasks;
+  </script>
+
+</body>
+</html>
