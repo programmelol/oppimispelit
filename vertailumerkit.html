@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vertailumerkkipeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    .task {
+      margin: 15px auto;
+      font-size: 20px;
+    }
+    input {
+      width: 40px;
+      font-size: 20px;
+      text-align: center;
+    }
+    button {
+      margin-left: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+    .feedback {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+    .correct {
+      color: green;
+    }
+    .wrong {
+      color: red;
+    }
+    #scoreboard {
+      font-size: 18px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Vertailumerkit &lt; ja &gt;</h2>
+  <div id="scoreboard">Pisteet: <span id="score">0</span></div>
+  <div id="tasksContainer"></div>
+  <button onclick="generateTasks()">Arvo uudet tehtävät</button>
+
+  <script>
+    let score = 0;
+    let taskCount = 0;
+
+    function generateTasks() {
+      taskCount = 0;
+      document.getElementById("tasksContainer").innerHTML = "";
+
+      for (let i = 0; i < 10; i++) {
+        const left = getRandomInt(-30, 30);
+        let right = getRandomInt(-30, 30);
+
+        // Vältetään yhtä suuret luvut
+        while (right === left) {
+          right = getRandomInt(-30, 30);
+        }
+
+        const taskDiv = document.createElement("div");
+        taskDiv.className = "task";
+
+        taskDiv.innerHTML = `
+          ${left} 
+          <input type="text" id="input-${i}" maxlength="1"> 
+          ${right}
+          <button onclick="checkAnswer(${i}, ${left}, ${right})">Tarkista</button>
+          <span id="feedback-${i}" class="feedback"></span>
+        `;
+
+        document.getElementById("tasksContainer").appendChild(taskDiv);
+      }
+    }
+
+    function checkAnswer(index, left, right) {
+      const input = document.getElementById(`input-${index}`);
+      const feedback = document.getElementById(`feedback-${index}`);
+
+      if (!input || input.disabled) return;
+
+      const userAnswer = input.value.trim();
+
+      const correct = left < right ? "<" : ">";
+      const isCorrect = userAnswer === correct;
+
+      if (isCorrect) {
+        feedback.textContent = "✅ Oikein!";
+        feedback.className = "feedback correct";
+        score++;
+        document.getElementById("score").textContent = score;
+      } else {
+        feedback.textContent = "❌ Väärin.";
+        feedback.className = "feedback wrong";
+      }
+
+      input.disabled = true;
+    }
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    window.onload = generateTasks;
+  </script>
+
+</body>
+</html>
