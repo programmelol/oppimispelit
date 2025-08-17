@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Jaksollinen järjestelmä -peli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 30px;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+    .question {
+      font-size: 20px;
+      margin: 20px 0;
+    }
+    input[type="text"] {
+      padding: 5px;
+      font-size: 18px;
+      width: 200px;
+    }
+    button {
+      padding: 8px 15px;
+      font-size: 16px;
+      margin-left: 10px;
+      margin-top: 10px;
+    }
+    .feedback {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    #score {
+      font-size: 18px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    #restartBtn {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Jaksollinen järjestelmä -peli</h1>
+
+  <div class="question" id="question"></div>
+  <input type="text" id="answer" placeholder="Vastauksesi">
+  <button onclick="checkAnswer()">Tarkista</button>
+
+  <div class="feedback" id="feedback"></div>
+  <div id="score">Pisteet: 0</div>
+
+  <button id="restartBtn" onclick="restartGame()">Pelaa uudestaan</button>
+
+  <img src="jaksollinen.png" alt="Jaksollinen järjestelmä">
+
+  <script>
+    const allQuestions = [
+      { q: "Mihin ryhmään vety kuuluu?", a: "1" },
+      { q: "Mihin jaksoon helium kuuluu?", a: "1" },
+      { q: "Montako ulkoelektronia on litiumilla?", a: "1" },
+      { q: "Montako elektronikuorta on berylliumilla?", a: "2" },
+      { q: "Mihin ryhmään boori kuuluu?", a: "13" },
+      { q: "Montako ulkoelektronia on hiilellä?", a: "4" },
+      { q: "Mihin jaksoon typpi kuuluu?", a: "2" },
+      { q: "Montako ulkoelektronia on hapella?", a: "6" },
+      { q: "Mihin ryhmään fluori kuuluu?", a: "17" },
+      { q: "Montako elektronikuorta on neonilla?", a: "2" },
+      { q: "Montako ulkoelektronia on natriumilla?", a: "1" },
+      { q: "Montako elektronikuorta on magnesiumilla?", a: "3" },
+      { q: "Mihin ryhmään alumiini kuuluu?", a: "13" },
+      { q: "Montako ulkoelektronia on piillä?", a: "4" },
+      { q: "Mihin jaksoon fosfori kuuluu?", a: "3" },
+      { q: "Montako ulkoelektronia on rikillä?", a: "6" },
+      { q: "Mihin ryhmään kloori kuuluu?", a: "17" },
+      { q: "Montako elektronikuorta on argonilla?", a: "3" },
+      { q: "Mihin jaksoon kalium kuuluu?", a: "4" },
+      { q: "Montako ulkoelektronia on kalsiumilla?", a: "2" },
+
+      // ✅ Järjestyslukukysymykset
+      { q: "Mikä on vedyn järjestysluku?", a: "1" },
+      { q: "Mikä on hiilen järjestysluku?", a: "6" },
+      { q: "Mikä on hapen järjestysluku?", a: "8" },
+      { q: "Mikä on neonin järjestysluku?", a: "10" },
+      { q: "Mikä on natriumin järjestysluku?", a: "11" },
+      { q: "Mikä on magnesiumin järjestysluku?", a: "12" },
+      { q: "Mikä on alumiinin järjestysluku?", a: "13" },
+      { q: "Mikä on kloorin järjestysluku?", a: "17" },
+      { q: "Mikä on kalsiumin järjestysluku?", a: "20" }
+    ];
+
+    let shuffled = [];
+    let currentQuestion = 0;
+    let score = 0;
+
+    function shuffleQuestions() {
+      shuffled = [...allQuestions]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
+    }
+
+    function showQuestion() {
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("answer").value = "";
+      document.getElementById("question").textContent = shuffled[currentQuestion].q;
+    }
+
+    function checkAnswer() {
+      const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+      const correctAnswer = shuffled[currentQuestion].a.toLowerCase();
+
+      const feedback = document.getElementById("feedback");
+
+      if (userAnswer === correctAnswer) {
+        score++;
+        feedback.textContent = "✅ Oikein!";
+      } else {
+        feedback.textContent = `❌ Väärin. Oikea vastaus on ${shuffled[currentQuestion].a}`;
+      }
+
+      document.getElementById("score").textContent = `Pisteet: ${score}`;
+      currentQuestion++;
+
+      if (currentQuestion < shuffled.length) {
+        setTimeout(showQuestion, 1500);
+      } else {
+        document.getElementById("question").textContent = "Peli päättyi!";
+        document.getElementById("answer").style.display = "none";
+        document.querySelector("button").style.display = "none";
+        document.getElementById("restartBtn").style.display = "inline-block";
+      }
+    }
+
+    function restartGame() {
+      score = 0;
+      currentQuestion = 0;
+      document.getElementById("answer").style.display = "inline-block";
+      document.querySelector("button").style.display = "inline-block";
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("score").textContent = `Pisteet: ${score}`;
+      shuffleQuestions();
+      showQuestion();
+    }
+
+    // Alustetaan peli
+    window.onload = () => {
+      shuffleQuestions();
+      showQuestion();
+    };
+  </script>
+</body>
+</html>

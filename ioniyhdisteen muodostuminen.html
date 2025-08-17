@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Ioniyhdistepeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .question {
+      font-size: 22px;
+      margin: 20px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button.option {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .feedback {
+      font-size: 20px;
+      margin: 10px;
+      font-weight: bold;
+    }
+
+    #scoreboard {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    #restartBtn {
+      display: none;
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Muodosta oikea ioniyhdisteen kaava</h2>
+  <div id="scoreboard">Pisteet: <span id="score">0</span></div>
+  <div class="question" id="question"></div>
+  <div class="options" id="options"></div>
+  <div class="feedback" id="feedback"></div>
+  <button id="restartBtn" onclick="restartGame()">Pelaa uudestaan</button>
+
+  <script>
+    const metalIons = [
+      { symbol: 'Na⁺', name: 'Na', charge: 1 },
+      { symbol: 'K⁺', name: 'K', charge: 1 },
+      { symbol: 'Mg²⁺', name: 'Mg', charge: 2 },
+      { symbol: 'Ca²⁺', name: 'Ca', charge: 2 },
+      { symbol: 'Al³⁺', name: 'Al', charge: 3 }
+    ];
+
+    const nonmetalIons = [
+      { symbol: 'Cl⁻', name: 'Cl', charge: -1 },
+      { symbol: 'O²⁻', name: 'O', charge: -2 },
+      { symbol: 'S²⁻', name: 'S', charge: -2 },
+      { symbol: 'F⁻', name: 'F', charge: -1 },
+      { symbol: 'N³⁻', name: 'N', charge: -3 }
+    ];
+
+    let score = 0;
+    let correctAnswer = "";
+    let currentMetal = null;
+    let currentNonmetal = null;
+
+    function getLCM(a, b) {
+      const gcd = (x, y) => !y ? x : gcd(y, x % y);
+      return Math.abs(a * b) / gcd(a, b);
+    }
+
+    function generateFormula(metal, nonmetal) {
+      const mCharge = metal.charge;
+      const nCharge = Math.abs(nonmetal.charge);
+      const lcm = getLCM(mCharge, nCharge);
+      const mSub = lcm / mCharge;
+      const nSub = lcm / nCharge;
+
+      return formatSubscript(metal.name, mSub) + formatSubscript(nonmetal.name, nSub);
+    }
+
+    function formatSubscript(symbol, count) {
+      return count === 1 ? symbol : symbol + "<sub>" + count + "</sub>";
+    }
+
+    function plainFormula(symbol, count) {
+      return count === 1 ? symbol : symbol + count;
+    }
+
+    function generateVariants(metal, nonmetal, correct) {
+      const variants = new Set();
+      variants.add(correct);
+
+      const possible = [
+        [1, 1],
+        [2, 1],
+        [1, 2],
+        [3, 2],
+        [2, 3],
+        [3, 3],
+        [2, 2]
+      ];
+
+      for (const [m, n] of possible) {
+        const alt = plainFormula(metal.name, m) + plainFormula(nonmetal.name, n);
+        if (!variants.has(alt)) variants.add(alt);
+        if (variants.size >= 4) break;
+      }
+
+      return Array.from(variants).sort(() => Math.random() - 0.5);
+    }
+
+    function displayQuestion() {
+      document.getElementById("feedback").textContent = "";
+
+      currentMetal = metalIons[Math.floor(Math.random() * metalIons.length)];
+      currentNonmetal = nonmetalIons[Math.floor(Math.random() * nonmetalIons.length)];
+
+      const correctPlain = plainFormula(currentMetal.name, getLCM(currentMetal.charge, Math.abs(currentNonmetal.charge)) / currentMetal.charge) +
+                           plainFormula(currentNonmetal.name, getLCM(currentMetal.charge, Math.abs(currentNonmetal.charge)) / Math.abs(currentNonmetal.charge));
+
+      correctAnswer = correctPlain;
+
+      document.getElementById("question").textContent =
+        `Mikä on oikea kemiallinen kaava, kun ionit ovat ${currentMetal.symbol} ja ${currentNonmetal.symbol}?`;
+
+      const options = generateVariants(currentMetal, currentNonmetal, correctAnswer);
+      const container = document.getElementById("options");
+      container.innerHTML = "";
+
+      options.forEach(opt => {
+        const button = document.createElement("button");
+        button.className = "option";
+        button.innerHTML = opt.replace(/(\d+)/g, "<sub>$1</sub>");
+        button.onclick = () => checkAnswer(opt);
+        container.appendChild(button);
+      });
+    }
+
+    function checkAnswer(answer) {
+      const feedback = document.getElementById("feedback");
+      if (answer === correctAnswer) {
+        score++;
+        document.getElementById("score").textContent = score;
+        feedback.textContent = "✅ Oikein!";
+        if (score >= 10) {
+          feedback.textContent += " 🎉 Peli päättyi!";
+          document.getElementById("restartBtn").style.display = "inline-block";
+        } else {
+          setTimeout(displayQuestion, 1000);
+        }
+      } else {
+        feedback.innerHTML = `❌ Väärin. Oikea vastaus on <strong>${correctAnswer.replace(/(\d+)/g, "<sub>$1</sub>")}</strong>`;
+      }
+    }
+
+    function restartGame() {
+      score = 0;
+      document.getElementById("score").textContent = score;
+      document.getElementById("restartBtn").style.display = "none";
+      displayQuestion();
+    }
+
+    window.onload = displayQuestion;
+  </script>
+</body>
+</html>
+
