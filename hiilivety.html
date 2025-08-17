@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Hiilivetyjen tunnistuspeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+    img {
+      width: 300px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+    .option {
+      display: block;
+      margin: 15px auto;
+      padding: 10px 20px;
+      font-size: 18px;
+      width: 220px;
+      text-align: left;
+      cursor: pointer;
+    }
+    #feedback {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    #score {
+      font-size: 20px;
+      margin-top: 20px;
+    }
+    #nextButton, #restartButton {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Tunnista hiilivety</h2>
+  <p>Valitse oikea nimi näkemällesi hiilivedylle.</p>
+
+  <img id="compoundImage" src="" alt="Hiilivetykuva">
+  
+  <div id="options"></div>
+
+  <div id="feedback"></div>
+  <div id="score">Pisteet: 0 / 20</div>
+
+  <button id="restartButton" onclick="restartGame()">Pelaa uudestaan</button>
+
+  <script>
+    const hydrocarbons = [
+      { name: "metaani", image: "metaani.png" },
+      { name: "etaani", image: "etaani.png" },
+      { name: "propeeni", image: "propeeni.png" },
+      { name: "butaani", image: "butaani.png" },
+      { name: "1-butyyni", image: "1-butyyni.png" },
+      { name: "2-butyyni", image: "2-butyyni.png" },
+      { name: "1-buteeni", image: "1-buteeni.png" },
+      { name: "2-buteeni", image: "2-buteeni.png" },
+      { name: "pentaani", image: "pentaani.png" },
+      { name: "1-penteeni", image: "1-penteeni.png" },
+      { name: "2-penteeni", image: "2-penteeni.png" },
+      { name: "1-pentyyni", image: "1-pentyyni.png" },
+      { name: "propaani", image: "propaani.png" },
+      { name: "eteeni", image: "eteeni.png" },
+      { name: "etyyni", image: "etyyni.png" },
+      { name: "propyyni", image: "propyyni.png" }
+    ];
+
+    let currentCorrect = "";
+    let score = 0;
+    let questionCount = 0;
+    const maxQuestions = 20;
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function generateQuestion() {
+      if (questionCount >= maxQuestions) {
+        endGame();
+        return;
+      }
+
+      document.getElementById("feedback").textContent = "";
+
+      // Valitaan satunnainen yhdiste
+      const correct = hydrocarbons[Math.floor(Math.random() * hydrocarbons.length)];
+      currentCorrect = correct.name;
+      document.getElementById("compoundImage").src = correct.image;
+
+      // Tehdään vastausvaihtoehdot
+      const optionsSet = new Set([correct.name]);
+      while (optionsSet.size < 4) {
+        const random = hydrocarbons[Math.floor(Math.random() * hydrocarbons.length)].name;
+        optionsSet.add(random);
+      }
+
+      const shuffledOptions = shuffle([...optionsSet]);
+      const labels = ['a)', 'b)', 'c)', 'd)'];
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      shuffledOptions.forEach((option, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = `${labels[index]} ${option}`;
+        btn.onclick = () => checkAnswer(option);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const feedback = document.getElementById("feedback");
+
+      if (selected === currentCorrect) {
+        feedback.textContent = "✅ Oikein!";
+        score++;
+      } else {
+        feedback.textContent = `❌ Väärin! Oikea vastaus oli: ${currentCorrect}`;
+      }
+
+      questionCount++;
+      document.getElementById("score").textContent = `Pisteet: ${score} / ${maxQuestions}`;
+
+      // Estä uudet klikkaukset vastausvaihtoehtoihin
+      const buttons = document.querySelectorAll(".option");
+      buttons.forEach(btn => btn.disabled = true);
+
+      // Siirry seuraavaan kysymykseen hetken kuluttua
+      setTimeout(() => {
+        generateQuestion();
+      }, 2000);
+    }
+
+    function endGame() {
+      document.getElementById("feedback").textContent = `Peli päättyi! Sait ${score} / ${maxQuestions} pistettä.`;
+      document.getElementById("restartButton").style.display = "inline-block";
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("compoundImage").style.display = "none";
+    }
+
+    function restartGame() {
+      score = 0;
+      questionCount = 0;
+      document.getElementById("score").textContent = `Pisteet: 0 / ${maxQuestions}`;
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("restartButton").style.display = "none";
+      document.getElementById("compoundImage").style.display = "block";
+      generateQuestion();
+    }
+
+    // Aloita peli
+    window.onload = generateQuestion;
+  </script>
+
+</body>
+</html>
