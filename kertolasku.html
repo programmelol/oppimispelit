@@ -1,188 +1,146 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-    <meta charset="UTF-8">
-    <title>Kertolaskupeli</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
-            padding: 20px;
-            display: flex;
-        }
+  <meta charset="UTF-8" />
+  <title>Kertolaskupeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: black;
+      color: red;
+    }
 
-        .lista {
-            width: 250px;
-            text-align: left;
-            padding-right: 30px;
-            border-right: 2px solid #ccc;
-        }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px darkred;
+    }
 
-        .peli {
-            flex-grow: 1;
-            text-align: center;
-        }
+    .task {
+      margin: 20px 0;
+      font-size: 22px;
+    }
 
-        h1 {
-            color: #2c3e50;
-        }
+    input[type="number"] {
+      width: 70px;
+      font-size: 16px;
+      background-color: black;
+      color: red;
+      border: 1px solid red;
+      border-radius: 4px;
+    }
 
-        #pisteet {
-            font-size: 20px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #16a085;
-        }
+    button {
+      margin-left: 10px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: darkred;
+      color: red;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-        input[type="number"] {
-            padding: 10px;
-            font-size: 16px;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            width: 100px;
-        }
+    button:disabled {
+      background-color: #440000;
+      cursor: not-allowed;
+      color: #880000;
+    }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+    .result {
+      margin-left: 10px;
+      font-weight: bold;
+    }
 
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        #tulos {
-            margin-top: 20px;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .laskurivi {
-            margin-bottom: 10px;
-            font-size: 16px;
-            white-space: pre-wrap;
-        }
-
-        #uudestaan {
-            display: none;
-            margin-top: 20px;
-        }
-    </style>
+    #score {
+      margin: 20px 0;
+      font-size: 28px;
+      color: yellow;
+      text-shadow: 1px 1px 4px darkred;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="lista" id="laskulista">
-        <h2>Laskut</h2>
-    </div>
+  <h1>Kertolaskupeli (3 lukua)</h1>
+  <div id="score">Pisteet: -0 / 100</div>
+  <div id="tasks"></div>
+  <button onclick="generateTasks()">Arvo uudet laskut</button>
 
-    <div class="peli">
-        <h1>Kertolaskupeli</h1>
-        <div id="pisteet">Pisteet: 0</div>
+  <script>
+    let totalScore = 0; 
+    let taskCount = 0;
 
-        <p id="kysymys">Laskutoimitus latautuu...</p>
+    function updateScoreDisplay() {
+      const shown = `-${Math.abs(totalScore)}`;
+      document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
+    }
 
-        <input type="number" id="vastaus" placeholder="Vastaus">
-        <br>
-        <button onclick="tarkistaVastaus()">Tarkista</button>
+    function getRandomNumber() {
+      let n;
+      do { n = Math.floor(Math.random() * 21) - 10; } while (n === 0);
+      return n;
+    }
 
-        <p id="tulos"></p>
+    function formatMultiplication(n, isFirst = false) {
+      if (n < 0 && !isFirst) return `· (${n})`;
+      return `· ${n}`;
+    }
 
-        <button id="uudestaan" onclick="pelaaUudestaan()">Pelaa uudestaan</button>
-    </div>
+    function generateTasks() {
+      const container = document.getElementById("tasks");
+      container.innerHTML = "";
 
-    <script>
-        let pisteet, laskujaJaljella, oikeaVastaus, laskunumero, viimeisinLasku;
+      for (let i = 0; i < 10; i++) {
+        const a = getRandomNumber();
+        const b = getRandomNumber();
+        const c = getRandomNumber();
+        const result = a * b * c;
 
-        function satunnainenLuku() {
-            let luku = 0;
-            while (luku === 0) {
-                luku = Math.floor(Math.random() * 21) - 10;
-            }
-            return luku;
-        }
+        const taskNumber = ++taskCount;
 
-        function muotoileLuku(luku, onkoJalkimmainen) {
-            return (onkoJalkimmainen && luku < 0) ? `(${luku})` : luku.toString();
-        }
+        const taskDiv = document.createElement("div");
+        taskDiv.className = "task";
+        taskDiv.innerHTML = `
+          <span style="margin-right: 15px;">${taskNumber}.</span>
+          ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} =
+          <input type="number" id="input-${taskNumber}" />
+          <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
+          <span class="result" id="result-${taskNumber}"></span>
+        `;
+        container.appendChild(taskDiv);
+      }
+    }
 
-        function uusiLasku() {
-            if (laskujaJaljella === 0) {
-                document.getElementById("kysymys").innerText = "🎉 Peli loppui! Kokonaispisteet: " + pisteet;
-                document.getElementById("vastaus").style.display = "none";
-                document.querySelector("button").style.display = "none";
-                document.getElementById("uudestaan").style.display = "inline-block";
-                document.getElementById("tulos").innerText = "";
-                return;
-            }
+    function checkAnswer(correctAnswer, id, button) {
+      const input = document.getElementById(`input-${id}`);
+      const resultSpan = document.getElementById(`result-${id}`);
+      const userAnswer = Number(input.value);
 
-            const luku1 = satunnainenLuku();
-            const luku2 = satunnainenLuku();
+      if (!Number.isFinite(userAnswer)) {
+        resultSpan.textContent = "⛔ Syötä numero.";
+        resultSpan.style.color = "orange";
+        return;
+      }
 
-            oikeaVastaus = luku1 * luku2;
-            viimeisinLasku = `${luku1} · ${muotoileLuku(luku2, true)}`;
+      if (userAnswer === correctAnswer) {
+        resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
+        resultSpan.style.color = "lime";
+        input.disabled = true;
+        button.disabled = true;
+        totalScore--;          
+        updateScoreDisplay();
+      } else {
+        resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
+        resultSpan.style.color = "orange";
+      }
+    }
 
-            document.getElementById("kysymys").innerText = viimeisinLasku + " = ?";
-            document.getElementById("vastaus").value = "";
-            document.getElementById("tulos").innerText = "";
-            document.getElementById("vastaus").focus();
-        }
-
-        function tarkistaVastaus() {
-            const vastaus = parseInt(document.getElementById("vastaus").value.trim(), 10);
-            const lista = document.getElementById("laskulista");
-
-            let oikein = vastaus === oikeaVastaus;
-            if (oikein) {
-                pisteet++;
-                document.getElementById("tulos").innerText = "✅ Oikein!";
-            } else {
-                document.getElementById("tulos").innerText = "❌ Väärin! Oikea vastaus oli " + oikeaVastaus;
-            }
-
-            document.getElementById("pisteet").innerText = "Pisteet: " + pisteet;
-
-            const uusiRivi = document.createElement("div");
-            uusiRivi.className = "laskurivi";
-            uusiRivi.innerText = `${laskunumero}.    ${viimeisinLasku} = ${vastaus} ${oikein ? "✅" : "❌"}`;
-            lista.appendChild(uusiRivi);
-
-            laskunumero++;
-            laskujaJaljella--;
-
-            setTimeout(uusiLasku, 1000);
-        }
-
-        function pelaaUudestaan() {
-            pisteet = 0;
-            laskujaJaljella = 10;
-            laskunumero = 1;
-
-            document.getElementById("laskulista").innerHTML = "<h2>Laskut</h2>";
-            document.getElementById("pisteet").innerText = "Pisteet: 0";
-            document.getElementById("uudestaan").style.display = "none";
-            document.getElementById("vastaus").style.display = "inline-block";
-            document.querySelector("button").style.display = "inline-block";
-
-            uusiLasku();
-        }
-
-        document.getElementById("vastaus").addEventListener("keyup", function(event) {
-            if (event.key === "Enter") {
-                tarkistaVastaus();
-            }
-        });
-
-        // Aloita peli automaattisesti
-        pelaaUudestaan();
-    </script>
+    updateScoreDisplay();
+    generateTasks();
+  </script>
 
 </body>
 </html>
