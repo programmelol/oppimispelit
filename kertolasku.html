@@ -64,7 +64,7 @@
 </head>
 <body>
 
-  <h1>Kertolaskupeli (3 lukua)</h1>
+  <h1>💀 Miinus-Kertolaskupeli (3 lukua) 💀</h1>
   <div id="score">Pisteet: -0 / 100</div>
   <div id="tasks"></div>
   <button onclick="generateTasks()">Arvo uudet laskut</button>
@@ -85,8 +85,7 @@
     }
 
     function formatMultiplication(n, isFirst = false) {
-      if (n < 0 && !isFirst) return `· (${n})`;
-      return `· ${n}`;
+      return (n < 0 && !isFirst) ? `· (${n})` : `· ${n}`;
     }
 
     function generateTasks() {
@@ -117,9 +116,9 @@
     function checkAnswer(correctAnswer, id, button) {
       const input = document.getElementById(`input-${id}`);
       const resultSpan = document.getElementById(`result-${id}`);
-      const userAnswer = Number(input.value);
+      const userAnswer = parseInt(input.value, 10);
 
-      if (!Number.isFinite(userAnswer)) {
+      if (isNaN(userAnswer)) {
         resultSpan.textContent = "⛔ Syötä numero.";
         resultSpan.style.color = "orange";
         return;
@@ -130,7 +129,7 @@
         resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore--;          
+        totalScore--;
         updateScoreDisplay();
       } else {
         resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
