@@ -4,47 +4,57 @@
   <meta charset="UTF-8" />
   <title>💀 Miinus-Kertolaskupeli 💀</title>
   <style>
+    /* EVIL DARK THEME */
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
-      background-color: black;       /* EVIL DARK MODE */
-      color: red;                    /* RED TEXT 😈 */
+      background-color: black;
+      color: red;
     }
+
     h1 {
       font-size: 32px;
       margin-bottom: 20px;
       text-shadow: 2px 2px 8px darkred;
     }
+
     .task {
       margin: 20px 0;
       font-size: 22px;
     }
+
     input[type="number"] {
       width: 70px;
       font-size: 16px;
-      background-color: #111;
+      background-color: black;
       color: red;
       border: 1px solid red;
       border-radius: 4px;
     }
+
     button {
       margin-left: 10px;
       padding: 5px 10px;
       border: none;
       border-radius: 5px;
       background-color: darkred;
-      color: white;
+      color: red;
+      font-weight: bold;
       cursor: pointer;
     }
+
     button:disabled {
       background-color: #440000;
       cursor: not-allowed;
+      color: #880000;
     }
+
     .result {
       margin-left: 10px;
       font-weight: bold;
     }
+
     #score {
       margin: 20px 0;
       font-size: 28px;
@@ -61,11 +71,11 @@
   <button onclick="generateTasks()">Arvo uudet laskut</button>
 
   <script>
-    let totalScore = 0;   // internal counter for correct answers
+    let totalScore = 0; // start at 0
     let taskCount = 0;
 
     function updateScoreDisplay() {
-      const shown = (totalScore === 0) ? "-0" : `-${totalScore}`;
+      const shown = `-${Math.abs(totalScore)}`; // always negative display
       document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
     }
 
@@ -82,7 +92,7 @@
 
     function generateTasks() {
       const container = document.getElementById("tasks");
-      container.innerHTML = "";
+      container.innerHTML = ""; // clear old tasks
 
       for (let i = 0; i < 10; i++) {
         const a = getRandomNumber();
@@ -117,11 +127,11 @@
       }
 
       if (userAnswer === correctAnswer) {
-        resultSpan.textContent = "✅ Oikein! …mut pisteet miinukselle 😈";
+        resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
         resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore++;
+        totalScore--;          // decrease for evil mode
         updateScoreDisplay();
       } else {
         resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
