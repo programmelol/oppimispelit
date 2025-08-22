@@ -2,30 +2,69 @@
 <html lang="fi">
 <head>
   <meta charset="UTF-8" />
-  <title>Kertolaskupeli (3 lukua) — Miinusmode</title>
+  <title>💀 Miinus-Kertolaskupeli 💀</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    .task { margin: 25px 0; font-size: 20px; }
-    input[type="number"] { width: 60px; font-size: 16px; }
-    button { margin-left: 10px; }
-    .result { margin-left: 10px; font-weight: bold; }
-    #score { margin: 20px 0; font-size: 22px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: black;       /* EVIL DARK MODE */
+      color: red;                    /* RED TEXT 😈 */
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px darkred;
+    }
+    .task {
+      margin: 20px 0;
+      font-size: 22px;
+    }
+    input[type="number"] {
+      width: 70px;
+      font-size: 16px;
+      background-color: #111;
+      color: red;
+      border: 1px solid red;
+      border-radius: 4px;
+    }
+    button {
+      margin-left: 10px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: darkred;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #440000;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+    #score {
+      margin: 20px 0;
+      font-size: 28px;
+      color: yellow;
+      text-shadow: 1px 1px 4px darkred;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Kertolaskupeli (3 lukua)</h1>
-  <!-- start visually at -0 / 100 -->
+  <h1>💀 Miinus-Kertolaskupeli (3 lukua) 💀</h1>
   <div id="score">Pisteet: -0 / 100</div>
   <div id="tasks"></div>
-  <button onclick="generateTasks()">Arvo uudet laskutoimitukset</button>
+  <button onclick="generateTasks()">Arvo uudet laskut</button>
 
   <script>
-    let totalScore = 0;   // counts correct answers internally: 0,1,2,...
+    let totalScore = 0;   // internal counter for correct answers
     let taskCount = 0;
 
     function updateScoreDisplay() {
-      // JS prints -0 as "0", so force the minus sign for zero too 🐱‍👤
       const shown = (totalScore === 0) ? "-0" : `-${totalScore}`;
       document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
     }
@@ -43,7 +82,6 @@
 
     function generateTasks() {
       const container = document.getElementById("tasks");
-      // (optional) comment this out if you prefer stacking tasks instead of replacing
       container.innerHTML = "";
 
       for (let i = 0; i < 10; i++) {
@@ -74,24 +112,23 @@
 
       if (!Number.isFinite(userAnswer)) {
         resultSpan.textContent = "⛔ Syötä numero.";
-        resultSpan.style.color = "red";
+        resultSpan.style.color = "orange";
         return;
       }
 
       if (userAnswer === correctAnswer) {
-        resultSpan.textContent = "✅ Oikein! (pisteet menevät miinukselle 😈)";
-        resultSpan.style.color = "green";
+        resultSpan.textContent = "✅ Oikein! …mut pisteet miinukselle 😈";
+        resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore += 1;         // keep count of correct answers
-        updateScoreDisplay();    // show as negative (with -0 handling)
+        totalScore++;
+        updateScoreDisplay();
       } else {
         resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
-        resultSpan.style.color = "red";
+        resultSpan.style.color = "orange";
       }
     }
 
-    // ensure the initial "-0 / 100" is set by logic too
     updateScoreDisplay();
     generateTasks();
   </script>
