@@ -2,23 +2,39 @@
 <html lang="fi">
 <head>
   <meta charset="UTF-8" />
-  <title>Kertolaskupeli (3 lukua)</title>
+  <title>❌ Miinuspeli ❌</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
+      background: #111;
+      color: #eee;
+    }
+    h1 {
+      color: crimson;
+      text-shadow: 2px 2px 5px black;
     }
     .task {
-      margin: 25px 0;
+      margin: 20px 0;
       font-size: 20px;
     }
     input[type="number"] {
-      width: 60px;
+      width: 70px;
       font-size: 16px;
     }
     button {
       margin-left: 10px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      background: crimson;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #444;
+      cursor: not-allowed;
     }
     .result {
       margin-left: 10px;
@@ -26,16 +42,17 @@
     }
     #score {
       margin: 20px 0;
-      font-size: 22px;
+      font-size: 24px;
+      color: yellow;
     }
   </style>
 </head>
 <body>
 
-  <h1>Kertolaskupeli (3 lukua)</h1>
-  <div id="score">Pisteet: 0 / 100</div>
+  <h1>❌ Miinuspeli (3 lukua) ❌</h1>
+  <div id="score">Pisteet: -0 / 100</div>
   <div id="tasks"></div>
-  <button onclick="generateTasks()">Arvo uudet laskutoimitukset</button>
+  <button onclick="generateTasks()">Arvo uudet laskut</button>
 
   <script>
     let totalScore = 0;
@@ -45,7 +62,7 @@
       let n;
       do {
         n = Math.floor(Math.random() * 21) - 10;
-      } while (n === 0); // ei nollia
+      } while (n === 0);
       return n;
     }
 
@@ -56,6 +73,7 @@
 
     function generateTasks() {
       const container = document.getElementById("tasks");
+      container.innerHTML = ""; // clear previous
 
       for (let i = 0; i < 10; i++) {
         const a = getRandomNumber();
@@ -68,8 +86,8 @@
         const taskDiv = document.createElement("div");
         taskDiv.className = "task";
         taskDiv.innerHTML = `
-          <span style="margin-right: 15px;">${taskNumber}.</span>
-          ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} = 
+          <span>${taskNumber}.</span>
+          ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} =
           <input type="number" id="input-${taskNumber}" />
           <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
           <span class="result" id="result-${taskNumber}"></span>
@@ -84,12 +102,12 @@
       const userAnswer = parseInt(input.value, 10);
 
       if (userAnswer === correctAnswer) {
-        resultSpan.textContent = "✅ Oikein!";
-        resultSpan.style.color = "green";
+        resultSpan.textContent = "✅ Oikein! ...mutta pisteet alas 😈";
+        resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore++;
-        document.getElementById("score").textContent = `Pisteet: ${totalScore} / 100`;
+        totalScore++; // still counting up internally
+        document.getElementById("score").textContent = `Pisteet: -${totalScore} / 100`;
       } else {
         resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
         resultSpan.style.color = "red";
