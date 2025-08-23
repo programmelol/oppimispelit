@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Palamisreaktion tasapainotus</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 40px;
+    }
+
+    .reaction {
+      font-size: 22px;
+      margin: 20px 0;
+    }
+
+    input[type="number"] {
+      width: 60px;
+      font-size: 18px;
+      margin: 0 4px;
+      text-align: center;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    #score {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    .hint {
+      font-size: 14px;
+      color: orange;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Palamisreaktion tasapainotus</h2>
+  <p>Syötä oikeat kokonaisluvut viivoille (lukua 1 ei tarvitse merkitä näkyviin):</p>
+
+  <div class="reaction" id="reactionDisplay"></div>
+
+  <button onclick="checkAnswer()">Tarkista</button>
+  <div class="hint" id="hint"></div>
+  <div class="result" id="feedback"></div>
+  <div id="score">Pisteet: 0</div>
+
+  <button onclick="generateReaction()" style="margin-top:20px;">Arvo uusi reaktio</button>
+
+  <script>
+    const compounds = [
+      { name: "CH₄", C: 1, H: 4, O: 0 },
+      { name: "C₂H₆", C: 2, H: 6, O: 0 },
+      { name: "C₃H₈", C: 3, H: 8, O: 0 },
+      { name: "C₄H₁₀", C: 4, H: 10, O: 0 },
+      { name: "C₅H₁₂", C: 5, H: 12, O: 0 },
+      { name: "CH₃OH", C: 1, H: 4, O: 1 },
+      { name: "C₂H₅OH", C: 2, H: 6, O: 1 },
+      { name: "C₃H₇OH", C: 3, H: 8, O: 1 },
+      { name: "C₄H₉OH", C: 4, H: 10, O: 1 },
+      { name: "C₅H₁₁OH", C: 5, H: 12, O: 1 }
+    ];
+
+    let currentCompound = null;
+    let correctCoefficients = [];
+    let score = 0;
+
+    function formatCoeff(val, compound) {
+      return (val === 1 ? '' : val + ' ') + compound;
+    }
+
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    function simplifyCoefficients(coeffs) {
+      let divisor = coeffs.reduce((a, b) => gcd(a, b));
+      return coeffs.map(x => x / divisor);
+    }
+
+    function generateReaction() {
+      const c = compounds[Math.floor(Math.random() * compounds.length)];
+      currentCompound = c;
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("hint").textContent = "";
+
+      const C = c.C;
+      const H = c.H;
+      const OinCompound = c.O;
+
+      // 1. Palavan aineen kerroin = 1
+      const a1 = 1;
+
+      // 2. CO₂ määrä = hiiliatomien määrä
+      const a3 = C;
+
+      // 3. H₂O määrä = H/2
+      const a4 = H / 2;
+
+      // 4. Yhteensä tarvittavat happiatomit tuotteissa
+      const neededO = a3 * 2 + a4;
+
+      // 5. Palavassa yhdisteessä olevat happiatomit
+      const oxygenInFuel = OinCompound;
+
+      // 6. Tarvittavat happiatomit O₂-molekyyleistä
+      const OfromO2 = neededO - oxygenInFuel * a1;
+
+      // 7. O₂ molekyylien määrä = OfromO2 / 2
+      const a2 = OfromO2 / 2;
+
+      let coeffs = [a1, a2, a3, a4];
+      let lcm = 1;
+
+      if (!Number.isInteger(a2) || !Number.isInteger(a4)) {
+        lcm = 2;
+        coeffs = coeffs.map(x => x * lcm);
+      }
+
+      correctCoefficients = simplifyCoefficients(coeffs);
+
+      document.getElementById("reactionDisplay").innerHTML = `
+        <input id="a1" type="number"> ${c.name} + 
+        <input id="a2" type="number"> O₂ → 
+        <input id="a3" type="number"> CO₂ + 
+        <input id="a4" type="number"> H₂O
+      `;
+    }
+
+    function parseOrDefault(id) {
+      const val = document.getElementById(id).value.trim();
+      return val === "" ? 1 : parseInt(val);
+    }
+
+    function checkAnswer() {
+      const a1 = parseOrDefault("a1");
+      const a2 = parseOrDefault("a2");
+      const a3 = parseOrDefault("a3");
+      const a4 = parseOrDefault("a4");
+
+      const feedback = document.getElementById("feedback");
+      const hint = document.getElementById("hint");
+
+      const isCorrect =
+        a1 === correctCoefficients[0] &&
+        a2 === correctCoefficients[1] &&
+        a3 === correctCoefficients[2] &&
+        a4 === correctCoefficients[3];
+
+      if (isCorrect) {
+        feedback.textContent = "✅ Oikein!";
+        if ([a1, a2, a3, a4].includes(1)) {
+          hint.textContent = "ℹ️ Lukua 1 ei tarvitse merkitä molekyylikaavan eteen.";
+        } else {
+          hint.textContent = "";
+        }
+        score++;
+        document.getElementById("score").textContent = `Pisteet: ${score}`;
+        setTimeout(generateReaction, 2000);
+      } else {
+        feedback.innerHTML = `❌ Väärin.<br>Oikea vastaus: ${formatCoeff(correctCoefficients[0], currentCompound.name)} + ${formatCoeff(correctCoefficients[1], 'O₂')} → ${formatCoeff(correctCoefficients[2], 'CO₂')} + ${formatCoeff(correctCoefficients[3], 'H₂O')}`;
+        hint.textContent = "";
+      }
+    }
+
+    window.onload = generateReaction;
+  </script>
+
+</body>
+</html>
