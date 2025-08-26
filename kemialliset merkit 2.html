@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Kemialliset merkit - Oppimispeli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            padding: 20px;
+            display: flex;
+        }
+
+        .lista {
+            width: 250px;
+            text-align: left;
+            padding-right: 30px;
+            border-right: 2px solid #ccc;
+        }
+
+        .peli {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        #pisteet {
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #16a085;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #tulos {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .vastausrivi {
+            margin-bottom: 8px;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+
+        #uudestaan {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lista" id="vastauslista">
+        <h2>Vastaukset</h2>
+    </div>
+
+    <div class="peli">
+        <h1>Kemialliset merkit</h1>
+        <div id="pisteet">Pisteet: 0</div>
+
+        <p id="kysymys">Kysymys latautuu...</p>
+
+        <input type="text" id="vastaus" placeholder="Kirjoita vastaus tähän">
+        <br>
+        <button onclick="tarkistaVastaus()">Tarkista</button>
+
+        <p id="tulos"></p>
+
+        <button id="uudestaan" onclick="aloitaPeli()">Pelaa uudestaan</button>
+    </div>
+
+    <script>
+        const kaikkiKysymykset = [
+            { kysymys: "Mikä on titaanin kemiallinen merkki?", oikea: "Ti", nimi: "Titaani" },
+            { kysymys: "Mikä on kromin kemiallinen merkki?", oikea: "Cr", nimi: "Kromi" },
+            { kysymys: "Mikä on raudan kemiallinen merkki?", oikea: "Fe", nimi: "Rauta" },
+            { kysymys: "Mikä on nikkelin kemiallinen merkki?", oikea: "Ni", nimi: "Nikkeli" },
+            { kysymys: "Mikä on kuparin kemiallinen merkki?", oikea: "Cu", nimi: "Kupari" },
+            { kysymys: "Mikä on sinkin kemiallinen merkki?", oikea: "Zn", nimi: "Sinkki" },
+            { kysymys: "Mikä on strontiumin kemiallinen merkki?", oikea: "Sr", nimi: "Strontium" },
+            { kysymys: "Mikä on hopean kemiallinen merkki?", oikea: "Ag", nimi: "Hopea" },
+            { kysymys: "Mikä on tinan kemiallinen merkki?", oikea: "Sn", nimi: "Tina" },
+            { kysymys: "Mikä on jodin kemiallinen merkki?", oikea: "I", nimi: "Jodi" },
+            { kysymys: "Mikä on ksenonin kemiallinen merkki?", oikea: "Xe", nimi: "ksenon" },
+            { kysymys: "Mikä on platinan kemiallinen merkki?", oikea: "Pt", nimi: "Platina" },
+            { kysymys: "Mikä on kullan kemiallinen merkki?", oikea: "Au", nimi: "Kulta" },
+            { kysymys: "Mikä on elohopean kemiallinen merkki?", oikea: "Hg", nimi: "Elohopea" },
+            { kysymys: "Mikä on lyijyn kemiallinen merkki?", oikea: "Pb", nimi: "Lyijy" },
+            { kysymys: "Mikä on radonin kemiallinen merkki?", oikea: "Rn", nimi: "Radon" },
+            { kysymys: "Mikä on uraanin kemiallinen merkki?", oikea: "U", nimi: "Uraani" },
+        ];
+
+        let nykyinenKysymys;
+        let pisteet;
+        let kysymykset;
+
+        function valitseKysymykset() {
+            const kopio = [...kaikkiKysymykset];
+            const valitut = [];
+            for (let i = 0; i < 10; i++) {
+                const index = Math.floor(Math.random() * kopio.length);
+                valitut.push(kopio.splice(index, 1)[0]);
+            }
+            return valitut;
+        }
+
+        function aloitaPeli() {
+            pisteet = 0;
+            nykyinenKysymys = 0;
+            kysymykset = valitseKysymykset();
+
+            document.getElementById("pisteet").innerText = "Pisteet: 0";
+            document.getElementById("uudestaan").style.display = "none";
+            document.getElementById("vastaus").style.display = "inline-block";
+            document.querySelector("button").style.display = "inline-block";
+            document.getElementById("vastauslista").innerHTML = "<h2>Vastaukset</h2>";
+
+            naytaKysymys();
+        }
+
+        function paivitaPisteet() {
+            document.getElementById("pisteet").innerText = "Pisteet: " + pisteet;
+        }
+
+        function naytaKysymys() {
+            if (nykyinenKysymys < kysymykset.length) {
+                document.getElementById("kysymys").innerText = kysymykset[nykyinenKysymys].kysymys;
+                document.getElementById("vastaus").value = "";
+                document.getElementById("tulos").innerText = "";
+                document.getElementById("vastaus").focus();
+            } else {
+                document.getElementById("kysymys").innerText = "🎉 Onneksi olkoon! Vastasit kaikkiin!";
+                document.getElementById("vastaus").style.display = "none";
+                document.querySelector("button").style.display = "none";
+                document.getElementById("uudestaan").style.display = "inline-block";
+                document.getElementById("tulos").innerText = "Kokonaispisteet: " + pisteet;
+            }
+        }
+
+        function tarkistaVastaus() {
+            let vastaus = document.getElementById("vastaus").value.trim();
+
+            if (vastaus.length === 1) {
+                vastaus = vastaus.toUpperCase();
+            } else if (vastaus.length === 2) {
+                vastaus = vastaus.charAt(0).toUpperCase() + vastaus.charAt(1).toLowerCase();
+            }
+
+            const oikeaVastaus = kysymykset[nykyinenKysymys].oikea;
+            const aineNimi = kysymykset[nykyinenKysymys].nimi;
+
+            let oikein = false;
+            if (vastaus === oikeaVastaus) {
+                pisteet++;
+                document.getElementById("tulos").innerText = "✅ Oikein!";
+                oikein = true;
+            } else {
+                document.getElementById("tulos").innerText = "❌ Väärin. Yritä uudestaan!";
+            }
+
+            paivitaPisteet();
+
+            const lista = document.getElementById("vastauslista");
+            const uusiRivi = document.createElement("div");
+            uusiRivi.className = "vastausrivi";
+            uusiRivi.innerText = `${aineNimi} = ${vastaus} ${oikein ? "✅" : "❌"}`;
+            lista.appendChild(uusiRivi);
+
+            if (oikein) {
+                nykyinenKysymys++;
+                setTimeout(naytaKysymys, 1000);
+            }
+        }
+
+        document.getElementById("vastaus").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                tarkistaVastaus();
+            }
+        });
+
+        aloitaPeli();
+    </script>
+
+</body>
+</html>
+

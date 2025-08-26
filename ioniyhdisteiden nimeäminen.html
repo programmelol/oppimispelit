@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Ioniyhdisteen nimeäminen</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .options button {
+      display: block;
+      margin: 12px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      width: 260px;
+    }
+    .feedback {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    #restartBtn {
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Ioniyhdisteen nimeäminen</h2>
+  <div id="score">Pisteet: 0 / 0</div>
+  <h3 id="formula">K₂O</h3>
+
+  <div class="options" id="options"></div>
+  <div class="feedback" id="feedback"></div>
+  <button id="restartBtn" onclick="restartGame()">Pelaa uudestaan</button>
+
+  <script>
+    const metals = [
+      { symbol: 'Na', name: 'natrium', charge: 1 },
+      { symbol: 'K', name: 'kalium', charge: 1 },
+      { symbol: 'Ca', name: 'kalsium', charge: 2 },
+      { symbol: 'Al', name: 'alumiini', charge: 3 },
+      { symbol: 'Li', name: 'litium', charge: 1 }
+    ];
+
+    const nonMetals = [
+      { symbol: 'N', name: 'typpi', charge: -3, suffix: 'nitridi' },
+      { symbol: 'O', name: 'happi', charge: -2, suffix: 'oksidi' },
+      { symbol: 'F', name: 'fluori', charge: -1, suffix: 'fluoridi' },
+      { symbol: 'S', name: 'rikki', charge: -2, suffix: 'sulfidi' },
+      { symbol: 'Cl', name: 'kloori', charge: -1, suffix: 'kloridi' },
+      { symbol: 'I', name: 'jodi', charge: -1, suffix: 'jodidi' }
+    ];
+
+    let score = 0;
+    let total = 0;
+    let correctAnswer = "";
+
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    function getSubscript(n) {
+      const subs = { 0:'₀',1:'₁',2:'₂',3:'₃',4:'₄',5:'₅',6:'₆',7:'₇',8:'₈',9:'₉' };
+      return n.toString().split('').map(d => subs[d]).join('');
+    }
+
+    function generateFormula() {
+      const metal = metals[Math.floor(Math.random() * metals.length)];
+      const nonMetal = nonMetals[Math.floor(Math.random() * nonMetals.length)];
+
+      const metalCharge = metal.charge;
+      const nonMetalCharge = -nonMetal.charge;
+
+      const g = gcd(metalCharge, nonMetalCharge);
+      const metalCount = nonMetalCharge / g;
+      const nonMetalCount = metalCharge / g;
+
+      let formula = metal.symbol;
+      if (metalCount > 1) formula += getSubscript(metalCount);
+      formula += nonMetal.symbol;
+      if (nonMetalCount > 1) formula += getSubscript(nonMetalCount);
+
+      correctAnswer = `${capitalize(metal.name)}${nonMetal.suffix}`;
+
+      return { formula, correctAnswer };
+    }
+
+    function capitalize(word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+
+    function generateQuestion() {
+      if (total >= 20) {
+        document.getElementById("feedback").innerText = `Peli päättyi! Sait ${score} / 20 pistettä.`;
+        document.getElementById("restartBtn").style.display = "inline-block";
+        return;
+      }
+
+      total++;
+      document.getElementById("score").innerText = `Pisteet: ${score} / ${total - 1}`;
+
+      const { formula, correctAnswer } = generateFormula();
+      document.getElementById("formula").innerText = formula;
+      document.getElementById("feedback").innerText = "";
+
+      let options = [correctAnswer];
+
+      // Lisää 3 väärää vaihtoehtoa
+      while (options.length < 4) {
+        const m = metals[Math.floor(Math.random() * metals.length)];
+        const n = nonMetals[Math.floor(Math.random() * nonMetals.length)];
+        const fakeAnswer = `${capitalize(m.name)}${n.suffix}`;
+        if (!options.includes(fakeAnswer)) options.push(fakeAnswer);
+      }
+
+      // Sekoita vastausvaihtoehdot
+      options = options.sort(() => Math.random() - 0.5);
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      const labels = ['a', 'b', 'c', 'd'];
+      options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.innerText = `${labels[i]}) ${opt}`;
+        btn.onclick = () => checkAnswer(opt);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(answer) {
+      const feedback = document.getElementById("feedback");
+      if (answer === correctAnswer) {
+        feedback.innerText = "✅ Oikein!";
+        score++;
+      } else {
+        feedback.innerText = `❌ Väärin! Oikea vastaus oli: ${correctAnswer}`;
+      }
+      setTimeout(generateQuestion, 1500);
+    }
+
+    function restartGame() {
+      score = 0;
+      total = 0;
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("feedback").innerText = "";
+      generateQuestion();
+    }
+
+    window.onload = generateQuestion;
+  </script>
+
+</body>
+</html>
