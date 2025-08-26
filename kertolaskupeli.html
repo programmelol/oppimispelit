@@ -70,21 +70,30 @@
   <div id="tasks"></div>
   <button onclick="generateTasks()">Arvo uudet laskut</button>
 
-  <!-- 🔊 Evil laugh audio -->
+  <!-- 🔊 Evil laugh for correct answers -->
   <audio id="evilLaugh">
     <source src="https://www.myinstants.com/media/sounds/evil-laugh.mp3" type="audio/mpeg">
   </audio>
 
+  <!-- 🔊 Sad violin for incorrect answers -->
+  <audio id="sadViolin">
+    <source src="https://www.soundjay.com/misc/sounds/violin-1.mp3" type="audio/mpeg">
+  </audio>
+
   <script>
-    let totalScore = 0; // start at 0
+    let totalScore = 0;
     let taskCount = 0;
 
     function playLaugh() {
       document.getElementById("evilLaugh").play();
     }
 
+    function playViolin() {
+      document.getElementById("sadViolin").play();
+    }
+
     function updateScoreDisplay() {
-      const shown = `-${Math.abs(totalScore)}`; // always negative display
+      const shown = `-${Math.abs(totalScore)}`;
       document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
     }
 
@@ -101,7 +110,7 @@
 
     function generateTasks() {
       const container = document.getElementById("tasks");
-      container.innerHTML = ""; // clear old tasks
+      container.innerHTML = "";
 
       for (let i = 0; i < 10; i++) {
         const a = getRandomNumber();
@@ -139,12 +148,13 @@
         resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore--;          // decrease for evil mode
+        totalScore--;
         updateScoreDisplay();
-        playLaugh();           // 😈 laugh on correct answer
+        playLaugh();
       } else {
         resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
         resultSpan.style.color = "orange";
+        playViolin();
       }
     }
 
