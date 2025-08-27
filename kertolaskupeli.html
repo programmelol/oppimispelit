@@ -61,6 +61,17 @@
       color: yellow;
       text-shadow: 1px 1px 4px darkred;
     }
+
+    /* Score flashing animation */
+    @keyframes scoreFlash {
+      0% { color: yellow; text-shadow: 1px 1px 4px darkred; }
+      50% { color: darkred; text-shadow: 2px 2px 6px black; }
+      100% { color: yellow; text-shadow: 1px 1px 4px darkred; }
+    }
+
+    .flashScore {
+      animation: scoreFlash 0.3s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -94,7 +105,13 @@
 
     function updateScoreDisplay() {
       const shown = `-${Math.abs(totalScore)}`;
-      document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
+      const scoreElem = document.getElementById("score");
+      scoreElem.textContent = `Pisteet: ${shown} / 100`;
+
+      // trigger flash effect
+      scoreElem.classList.remove("flashScore");
+      void scoreElem.offsetWidth; // trigger reflow
+      scoreElem.classList.add("flashScore");
     }
 
     function getRandomNumber() {
@@ -148,7 +165,7 @@
         resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore--;
+        totalScore--;          // evil points decrease
         updateScoreDisplay();
         playLaugh();
       } else {
