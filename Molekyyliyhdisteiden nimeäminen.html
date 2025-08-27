@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Molekyyliyhdisteiden Tunnistuspeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    .option {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      width: 300px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #feedback {
+      margin-top: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #scoreboard {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    #restartBtn {
+      margin-top: 20px;
+      display: none;
+      padding: 10px 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 id="questionTitle">Kysymys latautuu...</h2>
+  <div id="optionsContainer"></div>
+  <div id="feedback"></div>
+  <div id="scoreboard">Pisteet: 0 / 20</div>
+  <button id="restartBtn" onclick="restartGame()">Pelaa uudestaan</button>
+
+  <script>
+    const compounds = [
+      { name: "Hiilidioksidi", formula: "CO₂" },
+      { name: "Hiilimonoksidi", formula: "CO" },
+      { name: "Typpidioksidi", formula: "NO₂" },
+      { name: "Dityppitetraoksidi", formula: "N₂O₄" },
+      { name: "Difosforipentoksidi", formula: "P₂O₅" },
+      { name: "Rikkidioksidi", formula: "SO₂" },
+      { name: "Rikkitrioksidi", formula: "SO₃" },
+      { name: "Dityppimonoksidi", formula: "N₂O" },
+      { name: "Hiilidisulfidi", formula: "CS₂" },
+      { name: "Divetysulfidi", formula: "H₂S" }
+    ];
+
+    let currentCorrect = "";
+    let score = 0;
+    let questionsAnswered = 0;
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function generateQuestion() {
+      if (questionsAnswered >= 20) {
+        document.getElementById("feedback").textContent = `🎉 Peli päättyi! Lopullinen pistemäärä: ${score}/20`;
+        document.getElementById("restartBtn").style.display = "inline-block";
+        return;
+      }
+
+      const isNameToFormula = Math.random() < 0.5;
+
+      const correct = compounds[Math.floor(Math.random() * compounds.length)];
+      currentCorrect = isNameToFormula ? correct.formula : correct.name;
+
+      const questionText = isNameToFormula
+        ? `Mikä on kaava yhdisteelle: <strong>${correct.name}</strong>?`
+        : `Mikä on nimenä yhdisteelle: <strong>${correct.formula}</strong>?`;
+
+      document.getElementById("questionTitle").innerHTML = questionText;
+
+      // Tee vaihtoehdot
+      const allAnswers = new Set();
+      allAnswers.add(currentCorrect);
+
+      while (allAnswers.size < 4) {
+        const random = compounds[Math.floor(Math.random() * compounds.length)];
+        const val = isNameToFormula ? random.formula : random.name;
+        allAnswers.add(val);
+      }
+
+      const shuffledOptions = shuffleArray(Array.from(allAnswers));
+      const optionsContainer = document.getElementById("optionsContainer");
+      optionsContainer.innerHTML = "";
+
+      const labels = ["a)", "b)", "c)", "d)"];
+      shuffledOptions.forEach((option, i) => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerHTML = `${labels[i]} ${option}`;
+        btn.onclick = () => checkAnswer(option);
+        optionsContainer.appendChild(btn);
+      });
+
+      document.getElementById("feedback").textContent = "";
+    }
+
+    function checkAnswer(answer) {
+      const feedback = document.getElementById("feedback");
+
+      if (answer === currentCorrect) {
+        score++;
+        feedback.textContent = "✅ Oikein!";
+        feedback.style.color = "green";
+      } else {
+        feedback.textContent = `❌ Väärin! Oikea vastaus oli: ${currentCorrect}`;
+        feedback.style.color = "red";
+      }
+
+      questionsAnswered++;
+      document.getElementById("scoreboard").textContent = `Pisteet: ${score} / 20`;
+
+      setTimeout(() => {
+        generateQuestion();
+      }, 1500);
+    }
+
+    function restartGame() {
+      score = 0;
+      questionsAnswered = 0;
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("scoreboard").textContent = `Pisteet: 0 / 20`;
+      generateQuestion();
+    }
+
+    window.onload = generateQuestion;
+  </script>
+
+</body>
+</html>
