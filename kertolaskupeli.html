@@ -1,181 +1,179 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-  <meta charset="UTF-8" />
-  <title>💀 Miinus-Kertolaskupeli (2 lukua 😈) 💀</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background-color: black;
-      color: red;
-    }
+<meta charset="UTF-8" />
+<title>💀 Kertolaskupeli (2 lukua 😈) 💀</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+    background-color: black;
+    color: red;
+}
 
-    h1 {
-      font-size: 32px;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 8px darkred;
-    }
+h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 8px darkred;
+}
 
-    .task {
-      margin: 20px 0;
-      font-size: 22px;
-    }
+.task {
+    margin: 15px 0;
+    font-size: 22px;
+}
 
-    input[type="number"] {
-      width: 70px;
-      font-size: 16px;
-      background-color: black;
-      color: red;
-      border: 1px solid red;
-      border-radius: 4px;
-    }
+input[type="number"] {
+    width: 70px;
+    font-size: 16px;
+    background-color: black;
+    color: red;
+    border: 1px solid red;
+    border-radius: 4px;
+    text-align: center;
+}
 
-    button {
-      margin-left: 10px;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      background-color: darkred;
-      color: red;
-      font-weight: bold;
-      cursor: pointer;
-    }
+/* Remove arrows in input number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 
-    button:disabled {
-      background-color: #440000;
-      cursor: not-allowed;
-      color: #880000;
-    }
+button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: darkred;
+    color: red;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-    .result {
-      margin-left: 10px;
-      font-weight: bold;
-    }
+button:disabled {
+    background-color: #440000;
+    cursor: not-allowed;
+    color: #880000;
+}
 
-    #score {
-      margin: 20px 0;
-      font-size: 28px;
-      color: yellow;
-      text-shadow: 1px 1px 4px darkred;
-    }
+.result {
+    margin-left: 10px;
+    font-weight: bold;
+}
 
-    @keyframes scoreFlash {
-      0% { color: yellow; text-shadow: 1px 1px 4px darkred; }
-      50% { color: darkred; text-shadow: 2px 2px 6px black; }
-      100% { color: yellow; text-shadow: 1px 1px 4px darkred; }
-    }
+#score {
+    margin: 20px 0;
+    font-size: 28px;
+    color: yellow;
+    text-shadow: 1px 1px 4px darkred;
+}
 
-    .flashScore {
-      animation: scoreFlash 0.3s ease-in-out;
-    }
-  </style>
+@keyframes scoreFlash {
+    0% { color: yellow; text-shadow: 1px 1px 4px darkred; }
+    50% { color: darkred; text-shadow: 2px 2px 6px black; }
+    100% { color: yellow; text-shadow: 1px 1px 4px darkred; }
+}
+
+.flashScore {
+    animation: scoreFlash 0.3s ease-in-out;
+}
+</style>
 </head>
 <body>
 
-  <h1>💀 Miinus-Kertolaskupeli (2 lukua 😈) 💀</h1>
-  <div id="score">Pisteet: -0 / 100</div>
-  <div id="tasks"></div>
-  <button onclick="generateTasks()">Arvo uudet laskut</button>
+<h1>💀 Kertolaskupeli (2 lukua 😈) 💀</h1>
+<div id="score">Pisteet: 0 / 100</div>
+<div id="tasks"></div>
+<button onclick="generateTasks()">Arvo uudet laskut</button>
 
-  <!-- Sounds -->
-  <audio id="evilLaugh" preload="auto">
-    <source src="https://www.myinstants.com/en/instant/evil-laugh-1/" type="audio/mpeg">
-  </audio>
+<!-- Sounds -->
+<audio id="evilLaugh" src="evil-laugh.mp3" preload="auto"></audio>
+<audio id="sadViolin" src="sad-hamster-violin-meme.mp3" preload="auto"></audio>
 
-  <audio id="sadViolin" preload="auto">
-    <source src="https://www.myinstants.com/en/instant/sad-hamster-violin-meme-71037/" type="audio/mpeg">
-  </audio>
+<script>
+let totalScore = 0;
+let taskCount = 0;
 
-  <script>
-    let totalScore = 0;
-    let taskCount = 0;
+function updateScoreDisplay() {
+    const shown = totalScore;
+    const scoreElem = document.getElementById("score");
+    scoreElem.textContent = `Pisteet: ${shown} / 100`;
+    scoreElem.classList.remove("flashScore");
+    void scoreElem.offsetWidth;
+    scoreElem.classList.add("flashScore");
+}
 
-    function playLaugh() {
-      const laugh = document.getElementById("evilLaugh");
-      laugh.currentTime = 0;
-      laugh.play().catch(() => console.log("Evil laugh blocked, click required"));
-    }
+function getRandomNumber() {
+    let n;
+    do { n = Math.floor(Math.random() * 21) - 10; } while(n === 0);
+    return n;
+}
 
-    function playViolin() {
-      const violin = document.getElementById("sadViolin");
-      violin.currentTime = 0;
-      violin.play().catch(() => console.log("Sad violin blocked, click required"));
-    }
+function formatMultiplication(n, isFirst=false) {
+    return (n < 0 && !isFirst) ? `· (${n})` : `· ${n}`;
+}
 
-    function updateScoreDisplay() {
-      const shown = `-${Math.abs(totalScore)}`;
-      const scoreElem = document.getElementById("score");
-      scoreElem.textContent = `Pisteet: ${shown} / 100`;
-      scoreElem.classList.remove("flashScore");
-      void scoreElem.offsetWidth; // trigger reflow
-      scoreElem.classList.add("flashScore");
-    }
-
-    function getRandomNumber() {
-      let n;
-      do { n = Math.floor(Math.random() * 21) - 10; } while (n === 0);
-      return n;
-    }
-
-    function formatMultiplication(n, isFirst=false) {
-      return (n<0 && !isFirst) ? `· (${n})` : `· ${n}`;
-    }
-
-    function generateTasks() {
-      const container = document.getElementById("tasks");
-      container.innerHTML = "";
-
-      for (let i=0; i<10; i++) {
+function generateTasks() {
+    const container = document.getElementById("tasks");
+    container.innerHTML = "";
+    for (let i=0; i<10; i++) {
         const a = getRandomNumber();
         const b = getRandomNumber();
         const result = a * b;
-
         const taskNumber = ++taskCount;
 
         const taskDiv = document.createElement("div");
         taskDiv.className = "task";
         taskDiv.innerHTML = `
-          <span style="margin-right: 15px;">${taskNumber}.</span>
-          ${a} ${formatMultiplication(b)} =
-          <input type="number" id="input-${taskNumber}" />
-          <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
-          <span class="result" id="result-${taskNumber}"></span>
+            <span style="margin-right: 15px;">${taskNumber}.</span>
+            ${a} ${formatMultiplication(b)} =
+            <input type="number" id="input-${taskNumber}" />
+            <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
+            <span class="result" id="result-${taskNumber}"></span>
         `;
         container.appendChild(taskDiv);
-      }
     }
+}
 
-    function checkAnswer(correctAnswer, id, button) {
-      const input = document.getElementById(`input-${id}`);
-      const resultSpan = document.getElementById(`result-${id}`);
-      const userAnswer = Number(input.value);
+function playSound(id) {
+    const audio = document.getElementById(id);
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+}
 
-      if (!Number.isFinite(userAnswer)) {
+function checkAnswer(correctAnswer, id, button) {
+    const input = document.getElementById(`input-${id}`);
+    const resultSpan = document.getElementById(`result-${id}`);
+    const userAnswer = Number(input.value);
+
+    if (!Number.isFinite(userAnswer)) {
         resultSpan.textContent = "⛔ Syötä numero.";
         resultSpan.style.color = "orange";
         return;
-      }
+    }
 
-      if (userAnswer === correctAnswer) {
+    if (userAnswer === correctAnswer) {
         resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
         resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore--;
-        updateScoreDisplay();
-        playLaugh();
-      } else {
-        resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
+        totalScore -= 10;
+        playSound("evilLaugh");
+    } else {
+        resultSpan.textContent = "❌ Väärin! Pisteet laskevat lisää 😈";
         resultSpan.style.color = "orange";
-        playViolin();
-      }
+        totalScore -= 20;
+        playSound("sadViolin");
     }
 
     updateScoreDisplay();
-    generateTasks();
-  </script>
+}
+
+// Start
+generateTasks();
+updateScoreDisplay();
+</script>
 
 </body>
 </html>
