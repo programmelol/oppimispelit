@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>💀 Miinus-Kertolaskupeli (2 lukua 😈) 💀</title>
   <style>
-    /* EVIL DARK THEME */
     body {
       font-family: Arial, sans-serif;
       text-align: center;
@@ -62,7 +61,6 @@
       text-shadow: 1px 1px 4px darkred;
     }
 
-    /* Score flashing animation */
     @keyframes scoreFlash {
       0% { color: yellow; text-shadow: 1px 1px 4px darkred; }
       50% { color: darkred; text-shadow: 2px 2px 6px black; }
@@ -81,14 +79,13 @@
   <div id="tasks"></div>
   <button onclick="generateTasks()">Arvo uudet laskut</button>
 
-  <!-- 🔊 Evil laugh for correct answers -->
-  <audio id="evilLaugh">
-    <source src="https://www.myinstants.com/media/sounds/evil-laugh.mp3" type="audio/mpeg">
+  <!-- Sounds -->
+  <audio id="evilLaugh" preload="auto">
+    <source src="https://www.myinstants.com/en/instant/evil-laugh-1/" type="audio/mpeg">
   </audio>
 
-  <!-- 🔊 Sad violin for incorrect answers -->
-  <audio id="sadViolin">
-    <source src="https://www.soundjay.com/misc/sounds/violin-1.mp3" type="audio/mpeg">
+  <audio id="sadViolin" preload="auto">
+    <source src="https://www.myinstants.com/en/instant/sad-hamster-violin-meme-71037/" type="audio/mpeg">
   </audio>
 
   <script>
@@ -96,19 +93,21 @@
     let taskCount = 0;
 
     function playLaugh() {
-      document.getElementById("evilLaugh").play();
+      const laugh = document.getElementById("evilLaugh");
+      laugh.currentTime = 0;
+      laugh.play().catch(() => console.log("Evil laugh blocked, click required"));
     }
 
     function playViolin() {
-      document.getElementById("sadViolin").play();
+      const violin = document.getElementById("sadViolin");
+      violin.currentTime = 0;
+      violin.play().catch(() => console.log("Sad violin blocked, click required"));
     }
 
     function updateScoreDisplay() {
       const shown = `-${Math.abs(totalScore)}`;
       const scoreElem = document.getElementById("score");
       scoreElem.textContent = `Pisteet: ${shown} / 100`;
-
-      // trigger flash effect
       scoreElem.classList.remove("flashScore");
       void scoreElem.offsetWidth; // trigger reflow
       scoreElem.classList.add("flashScore");
@@ -120,16 +119,15 @@
       return n;
     }
 
-    function formatMultiplication(n, isFirst = false) {
-      if (n < 0 && !isFirst) return `· (${n})`;
-      return `· ${n}`;
+    function formatMultiplication(n, isFirst=false) {
+      return (n<0 && !isFirst) ? `· (${n})` : `· ${n}`;
     }
 
     function generateTasks() {
       const container = document.getElementById("tasks");
       container.innerHTML = "";
 
-      for (let i = 0; i < 10; i++) {
+      for (let i=0; i<10; i++) {
         const a = getRandomNumber();
         const b = getRandomNumber();
         const result = a * b;
@@ -165,7 +163,7 @@
         resultSpan.style.color = "lime";
         input.disabled = true;
         button.disabled = true;
-        totalScore--;          // evil points decrease
+        totalScore--;
         updateScoreDisplay();
         playLaugh();
       } else {
