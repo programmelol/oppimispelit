@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>💀 Kertolaskupeli (2 lukua 😈) 💀</title>
 <style>
-  /* ===== BODY STYLE ===== */
   body {
     font-family: Arial, sans-serif;
     background-color: black;
@@ -14,36 +13,39 @@
   }
 
   h1 {
-    font-size: 2em;
-    margin-bottom: 15px;
-    text-shadow: 2px 2px 6px darkred;
+    font-size: 32px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 8px darkred;
   }
 
   #score {
-    font-size: 1.3em;
     margin: 20px 0;
+    font-size: 28px;
+    color: yellow;
+    text-shadow: 1px 1px 4px darkred;
   }
 
-  #history {
+  #tasks {
     max-width: 600px;
     margin: 0 auto;
     text-align: left;
-    font-size: 1.2em;
-    white-space: pre-wrap;
+    font-size: 22px;
   }
 
-  input[type=number] {
-    font-size: 1.2em;
-    width: 100px;
-    text-align: center;
+  input[type="number"] {
+    width: 70px;
+    font-size: 16px;
+    background-color: black;
+    color: red;
+    border: 1px solid red;
+    border-radius: 4px;
   }
 
   button {
-    font-size: 1.1em;
     margin-left: 10px;
     padding: 5px 10px;
-    border-radius: 5px;
     border: none;
+    border-radius: 5px;
     background-color: darkred;
     color: red;
     font-weight: bold;
@@ -52,110 +54,103 @@
 
   button:disabled {
     background-color: #440000;
-    color: #880000;
     cursor: not-allowed;
+    color: #880000;
   }
 
+  .result {
+    margin-left: 10px;
+    font-weight: bold;
+  }
 </style>
 </head>
 <body>
 
 <h1>💀 Kertolaskupeli (2 lukua 😈) 💀</h1>
-<div id="score">Pisteet: 0 / 100</div>
+<div id="score">Pisteet: -0 / 100</div>
+<div id="tasks"></div>
+<button onclick="generateTasks()">Arvo uudet laskut</button>
 
-<div>
-  <span id="question"></span>
-  <input type="number" id="answer">
-  <button onclick="checkAnswer()">Tarkista</button>
-</div>
-
-<button onclick="newGame()">Aloita alusta</button>
-
-<div id="history"></div>
-
-<!-- ===== AUDIO ===== -->
+<!-- AUDIO -->
 <audio id="evilLaugh" src="evil-laugh.mp3" preload="auto"></audio>
 <audio id="sadViolin" src="sad-hamster-violin-meme.mp3" preload="auto"></audio>
 
 <script>
-  // ===== GLOBAL VARIABLES =====
-  let score = 0;
-  let questionCount = 0;
-  let currentA = 0;
-  let currentB = 0;
+let totalScore = 0;
+let taskCount = 0;
 
-  // ===== GENERATE A NEW QUESTION =====
-  function newQuestion() {
-    currentA = Math.floor(Math.random() * 10) + 1;
-    currentB = Math.floor(Math.random() * 10) + 1;
+function updateScoreDisplay() {
+  document.getElementById("score").textContent = `Pisteet: -${totalScore} / 100`;
+}
 
-    document.getElementById("question").textContent = `${currentA} · ${currentB} = `;
-    document.getElementById("answer").value = "";
-    document.getElementById("answer").focus();
-  }
+function getRandomNumber() {
+  return Math.floor(Math.random() * 10) + 1;
+}
 
-  // ===== UPDATE SCORE DISPLAY =====
-  function updateScore() {
-    document.getElementById("score").textContent = `Pisteet: ${score} / 100`;
-  }
+function generateTasks() {
+  const container = document.getElementById("tasks");
+  container.innerHTML = "";
 
-  // ===== PLAY SOUND =====
-  function playSound(soundId) {
-    const sound = document.getElementById(soundId);
-    sound.currentTime = 0;
-    sound.play();
-  }
+  for (let i = 0; i < 10; i++) {
+    const a = getRandomNumber();
+    const b = getRandomNumber();
+    const correct = a * b;
+    const taskNumber = ++taskCount;
 
-  // ===== APPEND HISTORY =====
-  function appendHistory(text) {
-    const history = document.getElementById("history");
-    history.innerHTML += text + "\n";
-  }
+    const taskDiv = document.createElement("div");
+    taskDiv.className = "task";
+    taskDiv.innerHTML = `
+      <span style="margin-right: 15px;">${taskNumber}.</span>
+      ${a} · ${b} =
+      <input type="number" id="input-${taskNumber}" />
+      <button onclick="checkAnswer(${correct}, ${taskNumber}, this)">Tarkista</button>
+      <span class="result" id="result-${taskNumber}"></span>
+    `;
+    container.appendChild(taskDiv);
 
-  // ===== CHECK ANSWER =====
-  function checkAnswer() {
-    const input = document.getElementById("answer");
-    const ans = parseInt(input.value);
-    if (isNaN(ans)) return;
-
-    questionCount++;
-    const correct = currentA * currentB;
-
-    if (ans === correct) {
-      // Correct answer
-      score -= 5; // evil twist: correct lowers points
-      playSound("evilLaugh");
-      appendHistory(`${questionCount}. ${currentA} · ${currentB} = ${ans} ✅ Oikein! …mut pisteet laskevat 😈`);
-    } else {
-      // Wrong answer
-      score -= 10;
-      playSound("sadViolin");
-      appendHistory(`${questionCount}. ${currentA} · ${currentB} = ${ans} ❌ Väärin!`);
-    }
-
-    updateScore();
-    newQuestion();
-  }
-
-  // ===== START NEW GAME =====
-  function newGame() {
-    score = 0;
-    questionCount = 0;
-    document.getElementById("history").textContent = "";
-    updateScore();
-    newQuestion();
-  }
-
-  // ===== ENTER KEY SUPPORT =====
-  document.addEventListener("DOMContentLoaded", () => {
-    const input = document.getElementById("answer");
-    input.addEventListener("keypress", (e) => {
+    // Enter key support
+    const input = taskDiv.querySelector(`#input-${taskNumber}`);
+    input.addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
-        checkAnswer();
+        checkAnswer(correct, taskNumber, taskDiv.querySelector("button"));
       }
     });
-    newGame();
-  });
+  }
+}
+
+function checkAnswer(correctAnswer, id, button) {
+  const input = document.getElementById(`input-${id}`);
+  const resultSpan = document.getElementById(`result-${id}`);
+  const userAnswer = Number(input.value);
+
+  if (!Number.isFinite(userAnswer)) {
+    resultSpan.textContent = "⛔ Syötä numero.";
+    resultSpan.style.color = "orange";
+    document.getElementById("sadViolin").currentTime = 0;
+    document.getElementById("sadViolin").play();
+    return;
+  }
+
+  if (userAnswer === correctAnswer) {
+    resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
+    resultSpan.style.color = "lime";
+    input.disabled = true;
+    button.disabled = true;
+    totalScore += 1; // only 1 point per correct answer
+    document.getElementById("evilLaugh").currentTime = 0;
+    document.getElementById("evilLaugh").play();
+  } else {
+    resultSpan.textContent = "❌ Väärin!";
+    resultSpan.style.color = "orange";
+    document.getElementById("sadViolin").currentTime = 0;
+    document.getElementById("sadViolin").play();
+  }
+
+  updateScoreDisplay();
+}
+
+updateScoreDisplay();
+generateTasks();
 </script>
 
 </body>
