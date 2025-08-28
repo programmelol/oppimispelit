@@ -1,147 +1,166 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-  <meta charset="UTF-8" />
-  <title>💀 Miinus-Kertolaskupeli (vaikeutettu😈) 💀</title>
-  <style>
-    /* EVIL DARK THEME */
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background-color: black;
-      color: red;
-    }
+<meta charset="UTF-8">
+<title>💀 Kertolaskupeli Keskitaso (3 lukua 😈) 💀</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: black;
+    color: red;
+    text-align: center;
+    padding: 20px;
+  }
 
-    h1 {
-      font-size: 32px;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 8px darkred;
-    }
+  h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 8px darkred;
+  }
 
-    .task {
-      margin: 20px 0;
-      font-size: 22px;
-    }
+  #score {
+    margin: 20px 0;
+    font-size: 28px;
+    color: yellow;
+    text-shadow: 1px 1px 4px darkred;
+  }
 
-    input[type="number"] {
-      width: 70px;
-      font-size: 16px;
-      background-color: black;
-      color: red;
-      border: 1px solid red;
-      border-radius: 4px;
-    }
+  #tasks {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+    font-size: 22px;
+  }
 
-    button {
-      margin-left: 10px;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      background-color: darkred;
-      color: red;
-      font-weight: bold;
-      cursor: pointer;
-    }
+  input[type="number"] {
+    width: 70px;
+    font-size: 16px;
+    background-color: black;
+    color: red;
+    border: 1px solid red;
+    border-radius: 4px;
+  }
 
-    button:disabled {
-      background-color: #440000;
-      cursor: not-allowed;
-      color: #880000;
-    }
+  button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: darkred;
+    color: red;
+    font-weight: bold;
+    cursor: pointer;
+  }
 
-    .result {
-      margin-left: 10px;
-      font-weight: bold;
-    }
+  button:disabled {
+    background-color: #440000;
+    cursor: not-allowed;
+    color: #880000;
+  }
 
-    #score {
-      margin: 20px 0;
-      font-size: 28px;
-      color: yellow;
-      text-shadow: 1px 1px 4px darkred;
-    }
-  </style>
+  .result {
+    margin-left: 10px;
+    font-weight: bold;
+  }
+</style>
 </head>
 <body>
 
-  <h1>💀 Miinus-Kertolaskupeli (3 lukua + vaikeutettu😈) 💀</h1>
-  <div id="score">Pisteet: -0 / 100</div>
-  <div id="tasks"></div>
-  <button onclick="generateTasks()">Arvo uudet laskut</button>
+<h1>💀 Kertolaskupeli Keskitaso (3 lukua 😈) 💀</h1>
+<div id="score">Pisteet: -0 / 100</div>
+<div id="tasks"></div>
+<button onclick="generateTasks()">Arvo uudet laskut</button>
 
-  <script>
-    let totalScore = 0; // start at 0
-    let taskCount = 0;
+<!-- AUDIO -->
+<audio id="evilLaugh" src="evil-laugh.mp3" preload="auto"></audio>
+<audio id="sadViolin" src="sad-hamster-violin-meme.mp3" preload="auto"></audio>
 
-    function updateScoreDisplay() {
-      const shown = `-${Math.abs(totalScore)}`; // always negative display
-      document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
-    }
+<script>
+let totalScore = 0;
+let taskCount = 0;
 
-    function getRandomNumber() {
-      let n;
-      do { n = Math.floor(Math.random() * 21) - 10; } while (n === 0);
-      return n;
-    }
+function updateScoreDisplay() {
+  const shown = `-${Math.abs(totalScore)}`;
+  document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
+}
 
-    function formatMultiplication(n, isFirst = false) {
-      if (n < 0 && !isFirst) return `· (${n})`;
-      return `· ${n}`;
-    }
+function getRandomNumber() {
+  let n;
+  do { n = Math.floor(Math.random() * 21) - 10; } while (n === 0);
+  return n;
+}
 
-    function generateTasks() {
-      const container = document.getElementById("tasks");
-      container.innerHTML = ""; // clear old tasks
+function formatMultiplication(n, isFirst = false) {
+  return (n < 0 && !isFirst) ? `· (${n})` : `· ${n}`;
+}
 
-      for (let i = 0; i < 10; i++) {
-        const a = getRandomNumber();
-        const b = getRandomNumber();
-        const c = getRandomNumber();
-        const result = a * b * c;
+function generateTasks() {
+  const container = document.getElementById("tasks");
+  container.innerHTML = "";
 
-        const taskNumber = ++taskCount;
+  for (let i = 0; i < 10; i++) {
+    const a = getRandomNumber();
+    const b = getRandomNumber();
+    const c = getRandomNumber();
+    const result = a * b * c;
 
-        const taskDiv = document.createElement("div");
-        taskDiv.className = "task";
-        taskDiv.innerHTML = `
-          <span style="margin-right: 15px;">${taskNumber}.</span>
-          ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} =
-          <input type="number" id="input-${taskNumber}" />
-          <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
-          <span class="result" id="result-${taskNumber}"></span>
-        `;
-        container.appendChild(taskDiv);
+    const taskNumber = ++taskCount;
+
+    const taskDiv = document.createElement("div");
+    taskDiv.className = "task";
+    taskDiv.innerHTML = `
+      <span style="margin-right: 15px;">${taskNumber}.</span>
+      ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} =
+      <input type="number" id="input-${taskNumber}" />
+      <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
+      <span class="result" id="result-${taskNumber}"></span>
+    `;
+    container.appendChild(taskDiv);
+
+    // Add Enter key support for each input
+    const input = taskDiv.querySelector(`#input-${taskNumber}`);
+    input.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        checkAnswer(result, taskNumber, taskDiv.querySelector("button"));
       }
-    }
+    });
+  }
+}
 
-    function checkAnswer(correctAnswer, id, button) {
-      const input = document.getElementById(`input-${id}`);
-      const resultSpan = document.getElementById(`result-${id}`);
-      const userAnswer = Number(input.value);
+function checkAnswer(correctAnswer, id, button) {
+  const input = document.getElementById(`input-${id}`);
+  const resultSpan = document.getElementById(`result-${id}`);
+  const userAnswer = Number(input.value);
 
-      if (!Number.isFinite(userAnswer)) {
-        resultSpan.textContent = "⛔ Syötä numero.";
-        resultSpan.style.color = "orange";
-        return;
-      }
+  if (!Number.isFinite(userAnswer)) {
+    resultSpan.textContent = "⛔ Syötä numero.";
+    resultSpan.style.color = "orange";
+    document.getElementById("sadViolin").currentTime = 0;
+    document.getElementById("sadViolin").play();
+    return;
+  }
 
-      if (userAnswer === correctAnswer) {
-        resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
-        resultSpan.style.color = "lime";
-        input.disabled = true;
-        button.disabled = true;
-        totalScore--;          // decrease for evil mode
-        updateScoreDisplay();
-      } else {
-        resultSpan.textContent = "❌ Väärin, yritä uudestaan.";
-        resultSpan.style.color = "orange";
-      }
-    }
+  if (userAnswer === correctAnswer) {
+    resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
+    resultSpan.style.color = "lime";
+    input.disabled = true;
+    button.disabled = true;
+    totalScore--;
+    document.getElementById("evilLaugh").currentTime = 0;
+    document.getElementById("evilLaugh").play();
+  } else {
+    resultSpan.textContent = "❌ Väärin!";
+    resultSpan.style.color = "orange";
+    document.getElementById("sadViolin").currentTime = 0;
+    document.getElementById("sadViolin").play();
+  }
 
-    updateScoreDisplay();
-    generateTasks();
-  </script>
+  updateScoreDisplay();
+}
+
+updateScoreDisplay();
+generateTasks();
+</script>
 
 </body>
 </html>
