@@ -28,13 +28,18 @@
   #tasks {
     max-width: 700px;
     margin: 0 auto;
-    text-align: left;
+    text-align: center;
     font-size: 22px;
   }
 
+  .task {
+    margin: 15px 0;
+  }
+
   input[type="number"] {
-    width: 70px;
-    font-size: 16px;
+    width: 80px;
+    font-size: 18px;
+    text-align: center;
     background-color: black;
     color: red;
     border: 1px solid red;
@@ -109,15 +114,14 @@ function generateTasks() {
     const taskDiv = document.createElement("div");
     taskDiv.className = "task";
     taskDiv.innerHTML = `
-      <span style="margin-right: 15px;">${taskNumber}.</span>
-      ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} =
+      ${taskNumber}. ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} =
       <input type="number" id="input-${taskNumber}" />
       <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
       <span class="result" id="result-${taskNumber}"></span>
     `;
     container.appendChild(taskDiv);
 
-    // Add Enter key support for each input
+    // Enter key support
     const input = taskDiv.querySelector(`#input-${taskNumber}`);
     input.addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
@@ -145,7 +149,7 @@ function checkAnswer(correctAnswer, id, button) {
     resultSpan.style.color = "lime";
     input.disabled = true;
     button.disabled = true;
-    totalScore--;
+    totalScore--; // only -1 per correct
     document.getElementById("evilLaugh").currentTime = 0;
     document.getElementById("evilLaugh").play();
   } else {
