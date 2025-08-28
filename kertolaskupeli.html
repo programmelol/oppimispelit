@@ -26,15 +26,20 @@
   }
 
   #tasks {
-    max-width: 600px;
+    max-width: 400px;
     margin: 0 auto;
-    text-align: left;
     font-size: 22px;
+    text-align: center;
+  }
+
+  .task {
+    margin: 15px 0;
   }
 
   input[type="number"] {
-    width: 70px;
+    width: 80px;
     font-size: 16px;
+    text-align: center;
     background-color: black;
     color: red;
     border: 1px solid red;
@@ -92,8 +97,9 @@ function generateTasks() {
   container.innerHTML = "";
 
   for (let i = 0; i < 10; i++) {
-    const a = getRandomNumber();
-    const b = getRandomNumber();
+    const a = Math.floor(Math.random() * 21) - 10; // -10 to 10
+    const b = Math.floor(Math.random() * 21) - 10; // -10 to 10
+    if(a===0 || b===0){i--; continue;} // avoid zero
     const correct = a * b;
     const taskNumber = ++taskCount;
 
@@ -101,7 +107,7 @@ function generateTasks() {
     taskDiv.className = "task";
     taskDiv.innerHTML = `
       <span style="margin-right: 15px;">${taskNumber}.</span>
-      ${a} · ${b} =
+      ${a} × ${b} =
       <input type="number" id="input-${taskNumber}" />
       <button onclick="checkAnswer(${correct}, ${taskNumber}, this)">Tarkista</button>
       <span class="result" id="result-${taskNumber}"></span>
@@ -136,7 +142,7 @@ function checkAnswer(correctAnswer, id, button) {
     resultSpan.style.color = "lime";
     input.disabled = true;
     button.disabled = true;
-    totalScore += 1; // only 1 point per correct answer
+    totalScore += 1; // subtract 1 point per correct answer
     document.getElementById("evilLaugh").currentTime = 0;
     document.getElementById("evilLaugh").play();
   } else {
