@@ -1,181 +1,196 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-  <meta charset="UTF-8">
-  <title>Kertolaskupeli</title>
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial, sans-serif;
-    }
-    canvas {
-      border: 2px solid black;
-      display: block;
-      margin: 20px auto;
-      background-color: #f9f9f9;
-    }
-    #question {
-      font-size: 24px;
-      margin-top: 20px;
-    }
-    #score, #timer {
-      font-size: 18px;
-      margin: 10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>💀 Kertolaskupeli (2 lukua 😈) 💀</title>
+<style>
+  body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background-color: black;
+    color: red;
+  }
+  canvas {
+    border: 2px solid red;
+    display: block;
+    margin: 20px auto;
+    background-color: #111;
+  }
+  #score {
+    font-size: 24px;
+    margin: 10px;
+    color: yellow;
+    text-shadow: 1px 1px 3px darkred;
+  }
+  #timer {
+    font-size: 20px;
+    margin: 10px;
+  }
+  #history {
+    max-width: 600px;
+    margin: 20px auto;
+    text-align: left;
+    font-size: 18px;
+    white-space: pre-wrap;
+  }
+</style>
 </head>
 <body>
-  <h2>Kertolaskupeli</h2>
-  <div id="question">Kysymys latautuu...</div>
-  <div id="score">Pisteet: 0</div>
-  <div id="timer">Aikaa jäljellä: 10 s</div>
-  <canvas id="gameCanvas" width="600" height="400"></canvas>
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+<h1>💀 Kertolaskupeli (2 lukua 😈) 💀</h1>
+<div id="score">Pisteet: 0 / 100</div>
+<div id="timer">Aikaa jäljellä: 15 s</div>
+<canvas id="gameCanvas" width="600" height="400"></canvas>
+<div id="history"></div>
 
-    let player = { x: 50, y: 50, r: 15, speed: 4 };
-    let keys = {};
-    let correctAnswer = 0;
-    let answers = [];
-    let score = 0;
-    let timeLeft = 10;
-    let timerInterval;
-    let currentQuestion = "";
-    let obstacles = [
-      { x: 200, y: 100, w: 200, h: 20 },
-      { x: 100, y: 250, w: 20, h: 100 },
-      { x: 350, y: 300, w: 150, h: 20 }
-    ];
+<audio id="evilLaugh" src="evil-laugh.mp3" preload="auto"></audio>
+<audio id="sadViolin" src="sad-hamster-violin-meme.mp3" preload="auto"></audio>
 
-    function randomInt(min, max) {
-      let num = 0;
-      while (num === 0) {
-        num = Math.floor(Math.random() * (max - min + 1)) + min;
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let player = { x: 50, y: 50, r: 15, speed: 4 };
+let keys = {};
+let correctAnswer = 0;
+let answers = [];
+let score = 0;
+let timeLeft = 15;
+let timerInterval;
+let questionCount = 0;
+
+// ===== UTILS =====
+function randomInt(min, max) {
+  let num = 0;
+  while (num === 0) num = Math.floor(Math.random() * (max - min + 1)) + min;
+  return num;
+}
+
+function playSound(id) {
+  const sound = document.getElementById(id);
+  sound.currentTime = 0;
+  sound.play();
+}
+
+function appendHistory(text) {
+  const history = document.getElementById("history");
+  history.innerHTML += text + "\n";
+}
+
+// ===== QUESTION GENERATION =====
+function generateQuestion() {
+  player.x = 50;
+  player.y = 50;
+
+  const a = randomInt(-10,10);
+  const b = randomInt(-10,10);
+  correctAnswer = a * b;
+
+  const displayB = b < 0 ? `(${b})` : b;
+  const questionText = `${a} · ${displayB} = ?`;
+  questionCount++;
+  appendHistory(`${questionCount}. ${a} · ${displayB} = `);
+
+  // Generate 5 answers (1 correct + 4 wrong)
+  const allAnswers = new Set([correctAnswer]);
+  while(allAnswers.size < 5) {
+    const wrong = correctAnswer + randomInt(-10,10);
+    allAnswers.add(wrong);
+  }
+  answers = Array.from(allAnswers).map(value => ({
+    value,
+    x: Math.random()*(canvas.width-60)+30,
+    y: Math.random()*(canvas.height-60)+30,
+    r: 20
+  }));
+
+  timeLeft = 15;
+  updateTimer();
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if(timeLeft <= 0) nextQuestion();
+  }, 1000);
+}
+
+function updateTimer() {
+  document.getElementById("timer").textContent = `Aikaa jäljellä: ${timeLeft} s`;
+}
+
+function nextQuestion() {
+  clearInterval(timerInterval);
+  generateQuestion();
+}
+
+// ===== GAME LOOP =====
+function update() {
+  if(keys["ArrowUp"]) player.y -= player.speed;
+  if(keys["ArrowDown"]) player.y += player.speed;
+  if(keys["ArrowLeft"]) player.x -= player.speed;
+  if(keys["ArrowRight"]) player.x += player.speed;
+
+  // Collision with answers
+  for(let ans of answers) {
+    const dx = player.x - ans.x;
+    const dy = player.y - ans.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist < player.r + ans.r) {
+      if(ans.value === correctAnswer) {
+        score--;
+        document.getElementById("score").textContent = `Pisteet: ${score} / 100`;
+        playSound("evilLaugh");
+        appendHistory(`${correctAnswer} ✅ Oikein! …mut pisteet laskevat 😈`);
+      } else {
+        playSound("sadViolin");
+        appendHistory(`${ans.value} ❌ Väärin!`);
       }
-      return num;
+      nextQuestion();
+      return;
     }
+  }
 
-    function generateQuestion() {
-      player.x = 50;
-      player.y = 50;
+  // Keep player inside canvas
+  if(player.x - player.r < 0) player.x = player.r;
+  if(player.x + player.r > canvas.width) player.x = canvas.width - player.r;
+  if(player.y - player.r < 0) player.y = player.r;
+  if(player.y + player.r > canvas.height) player.y = canvas.height - player.r;
+}
 
-      let a = randomInt(-10, 10);
-      let b = randomInt(-10, 10);
-      correctAnswer = a * b;
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-      const displayB = b < 0 ? `(${b})` : b;
-      currentQuestion = `${a} · ${displayB} = ?`;
-      document.getElementById("question").textContent = currentQuestion;
+  // Draw answers
+  for(let ans of answers) {
+    ctx.beginPath();
+    ctx.arc(ans.x, ans.y, ans.r, 0, Math.PI*2);
+    ctx.fillStyle = "#ccc";
+    ctx.fill();
+    ctx.closePath();
+    ctx.fillStyle = "black";
+    ctx.font = "16px Arial";
+    ctx.fillText(ans.value, ans.x - 10, ans.y + 5);
+  }
 
-      const allAnswers = new Set([correctAnswer]);
-      while (allAnswers.size < 5) {
-        allAnswers.add(correctAnswer + randomInt(-10, 10));
-      }
+  // Draw player
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.r, 0, Math.PI*2);
+  ctx.fillStyle = "blue";
+  ctx.fill();
+  ctx.closePath();
+}
 
-      answers = Array.from(allAnswers).map(value => ({
-        value,
-        x: Math.random() * (canvas.width - 60) + 30,
-        y: Math.random() * (canvas.height - 60) + 30,
-        r: 20
-      }));
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
 
-      timeLeft = 10;
-      updateTimer();
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        updateTimer();
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          nextQuestion();
-        }
-      }, 1000);
-    }
+document.addEventListener("keydown", (e) => keys[e.key] = true);
+document.addEventListener("keyup", (e) => keys[e.key] = false);
 
-    function updateTimer() {
-      document.getElementById("timer").textContent = `Aikaa jäljellä: ${timeLeft} s`;
-    }
-
-    function nextQuestion() {
-      generateQuestion();
-    }
-
-    function update() {
-      if (keys["ArrowUp"]) player.y -= player.speed;
-      if (keys["ArrowDown"]) player.y += player.speed;
-      if (keys["ArrowLeft"]) player.x -= player.speed;
-      if (keys["ArrowRight"]) player.x += player.speed;
-
-      for (let obs of obstacles) {
-        if (player.x + player.r > obs.x && player.x - player.r < obs.x + obs.w &&
-            player.y + player.r > obs.y && player.y - player.r < obs.y + obs.h) {
-          if (keys["ArrowUp"]) player.y += player.speed;
-          if (keys["ArrowDown"]) player.y -= player.speed;
-          if (keys["ArrowLeft"]) player.x += player.speed;
-          if (keys["ArrowRight"]) player.x -= player.speed;
-        }
-      }
-
-      for (let ans of answers) {
-        let dx = player.x - ans.x;
-        let dy = player.y - ans.y;
-        let dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < player.r + ans.r) {
-          if (ans.value === correctAnswer) {
-            score++;
-            document.getElementById("score").textContent = `Pisteet: ${score}`;
-          }
-          clearInterval(timerInterval);
-          nextQuestion();
-          return;
-        }
-      }
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Piirrä esteet
-      ctx.fillStyle = "#333";
-      for (let obs of obstacles) {
-        ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-      }
-
-      // Pelaaja
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
-      ctx.fillStyle = "blue";
-      ctx.fill();
-      ctx.closePath();
-
-      // Vastaukset
-      ctx.fillStyle = "black";
-      ctx.font = "16px Arial";
-      for (let ans of answers) {
-        ctx.beginPath();
-        ctx.arc(ans.x, ans.y, ans.r, 0, Math.PI * 2);
-        ctx.fillStyle = "#ccc";
-        ctx.fill();
-        ctx.closePath();
-        ctx.fillStyle = "black";
-        ctx.fillText(ans.value, ans.x - 10, ans.y + 5);
-      }
-    }
-
-    function gameLoop() {
-      update();
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
-
-    document.addEventListener("keydown", (e) => keys[e.key] = true);
-    document.addEventListener("keyup", (e) => keys[e.key] = false);
-
-    generateQuestion();
-    gameLoop();
-  </script>
+generateQuestion();
+gameLoop();
+</script>
 </body>
 </html>
-
