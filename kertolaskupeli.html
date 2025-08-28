@@ -76,7 +76,6 @@
 <div id="tasks"></div>
 <button onclick="generateTasks()">Arvo uudet laskut</button>
 
-<!-- AUDIO -->
 <audio id="evilLaugh" src="evil-laugh.mp3" preload="auto"></audio>
 <audio id="sadViolin" src="sad-hamster-violin-meme.mp3" preload="auto"></audio>
 
@@ -88,8 +87,16 @@ function updateScoreDisplay() {
   document.getElementById("score").textContent = `Pisteet: -${totalScore} / 100`;
 }
 
+// Wrap negative numbers in parentheses except first
+function formatNumber(n, isFirst=false) {
+  if (n < 0 && !isFirst) return `(${n})`;
+  return n;
+}
+
 function getRandomNumber() {
-  return Math.floor(Math.random() * 10) + 1;
+  let n;
+  do { n = Math.floor(Math.random() * 21) - 10; } while (n === 0);
+  return n;
 }
 
 function generateTasks() {
@@ -97,9 +104,8 @@ function generateTasks() {
   container.innerHTML = "";
 
   for (let i = 0; i < 10; i++) {
-    const a = Math.floor(Math.random() * 21) - 10; // -10 to 10
-    const b = Math.floor(Math.random() * 21) - 10; // -10 to 10
-    if(a===0 || b===0){i--; continue;} // avoid zero
+    const a = getRandomNumber();
+    const b = getRandomNumber();
     const correct = a * b;
     const taskNumber = ++taskCount;
 
@@ -107,7 +113,7 @@ function generateTasks() {
     taskDiv.className = "task";
     taskDiv.innerHTML = `
       <span style="margin-right: 15px;">${taskNumber}.</span>
-      ${a} × ${b} =
+      ${formatNumber(a, true)} × ${formatNumber(b)} =
       <input type="number" id="input-${taskNumber}" />
       <button onclick="checkAnswer(${correct}, ${taskNumber}, this)">Tarkista</button>
       <span class="result" id="result-${taskNumber}"></span>
@@ -142,7 +148,7 @@ function checkAnswer(correctAnswer, id, button) {
     resultSpan.style.color = "lime";
     input.disabled = true;
     button.disabled = true;
-    totalScore += 1; // subtract 1 point per correct answer
+    totalScore += 1; // subtract 1 point for evil mode
     document.getElementById("evilLaugh").currentTime = 0;
     document.getElementById("evilLaugh").play();
   } else {
