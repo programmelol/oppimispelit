@@ -28,28 +28,26 @@
   #tasks {
     max-width: 700px;
     margin: 0 auto;
+    text-align: center;
     font-size: 22px;
   }
 
   .task {
-    display: flex;
-    justify-content: center; /* center horizontally */
-    align-items: center;
     margin: 15px 0;
-    gap: 10px; /* spacing between elements */
   }
 
   input[type="number"] {
-    width: 80px;
-    font-size: 18px;
-    text-align: center;
+    width: 70px;
+    font-size: 16px;
     background-color: black;
     color: red;
     border: 1px solid red;
     border-radius: 4px;
+    text-align: center;
   }
 
   button {
+    margin-left: 10px;
     padding: 5px 10px;
     border: none;
     border-radius: 5px;
@@ -66,6 +64,7 @@
   }
 
   .result {
+    margin-left: 10px;
     font-weight: bold;
   }
 </style>
@@ -90,58 +89,58 @@ function updateScoreDisplay() {
   document.getElementById("score").textContent = `Pisteet: ${shown} / 100`;
 }
 
-function getRandomNumber() {
+function getRandomNumber(position) {
   let n;
-  do { n = Math.floor(Math.random() * 21) - 10; } while (n === 0);
+  if(position === 3){
+    do { n = Math.floor(Math.random() * 11) - 5; } while(n === 0);
+  } else {
+    do { n = Math.floor(Math.random() * 21) - 10; } while(n === 0);
+  }
   return n;
 }
 
-function formatMultiplication(n, isFirst = false) {
-  return (n < 0 && !isFirst) ? `(${n})` : `${n}`;
+function formatMultiplication(n, isFirst=false){
+  return (n < 0 && !isFirst) ? `· (${n})` : `· ${n}`;
 }
 
-function generateTasks() {
+function generateTasks(){
   const container = document.getElementById("tasks");
   container.innerHTML = "";
 
-  for (let i = 0; i < 10; i++) {
-    const a = getRandomNumber();
-    const b = getRandomNumber();
-    const c = getRandomNumber();
-    const result = a * b * c;
-
+  for(let i=0;i<10;i++){
+    const a = getRandomNumber(1);
+    const b = getRandomNumber(2);
+    const c = getRandomNumber(3);
+    const result = a*b*c;
     const taskNumber = ++taskCount;
 
     const taskDiv = document.createElement("div");
     taskDiv.className = "task";
     taskDiv.innerHTML = `
       <span>${taskNumber}.</span>
-      <span>${formatMultiplication(a)}</span>
-      <span>·</span>
-      <span>${formatMultiplication(b)}</span>
-      <span>·</span>
-      <span>${formatMultiplication(c)}</span>
+      ${a} ${formatMultiplication(b)} ${formatMultiplication(c)} =
       <input type="number" id="input-${taskNumber}" />
-      <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
+      <button onclick="checkAnswer(${result},${taskNumber},this)">Tarkista</button>
       <span class="result" id="result-${taskNumber}"></span>
     `;
     container.appendChild(taskDiv);
 
+    // Enter key support
     const input = taskDiv.querySelector(`#input-${taskNumber}`);
-    input.addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
+    input.addEventListener("keypress", function(e){
+      if(e.key === "Enter"){
         checkAnswer(result, taskNumber, taskDiv.querySelector("button"));
       }
     });
   }
 }
 
-function checkAnswer(correctAnswer, id, button) {
+function checkAnswer(correctAnswer,id,button){
   const input = document.getElementById(`input-${id}`);
   const resultSpan = document.getElementById(`result-${id}`);
   const userAnswer = Number(input.value);
 
-  if (!Number.isFinite(userAnswer)) {
+  if(!Number.isFinite(userAnswer)){
     resultSpan.textContent = "⛔ Syötä numero.";
     resultSpan.style.color = "orange";
     document.getElementById("sadViolin").currentTime = 0;
@@ -149,7 +148,7 @@ function checkAnswer(correctAnswer, id, button) {
     return;
   }
 
-  if (userAnswer === correctAnswer) {
+  if(userAnswer === correctAnswer){
     resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
     resultSpan.style.color = "lime";
     input.disabled = true;
@@ -167,6 +166,7 @@ function checkAnswer(correctAnswer, id, button) {
   updateScoreDisplay();
 }
 
+// Initialize
 updateScoreDisplay();
 generateTasks();
 </script>
