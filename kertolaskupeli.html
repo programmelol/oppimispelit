@@ -1,178 +1,161 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>💀 Kertolaskupeli (2 lukua 😈) 💀</title>
 <style>
-body {
+  /* ===== BODY STYLE ===== */
+  body {
     font-family: Arial, sans-serif;
+    background-color: black;
+    color: red;
     text-align: center;
     padding: 20px;
-    background-color: black;
-    color: red;
-}
+  }
 
-h1 {
-    font-size: 32px;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 8px darkred;
-}
+  h1 {
+    font-size: 2em;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 6px darkred;
+  }
 
-.task {
-    margin: 15px 0;
-    font-size: 22px;
-}
+  #score {
+    font-size: 1.3em;
+    margin: 20px 0;
+  }
 
-input[type="number"] {
-    width: 70px;
-    font-size: 16px;
-    background-color: black;
-    color: red;
-    border: 1px solid red;
-    border-radius: 4px;
+  #history {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+    font-size: 1.2em;
+    white-space: pre-wrap;
+  }
+
+  input[type=number] {
+    font-size: 1.2em;
+    width: 100px;
     text-align: center;
-}
+  }
 
-/* Remove arrows in input number */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-button {
+  button {
+    font-size: 1.1em;
     margin-left: 10px;
     padding: 5px 10px;
-    border: none;
     border-radius: 5px;
+    border: none;
     background-color: darkred;
     color: red;
     font-weight: bold;
     cursor: pointer;
-}
+  }
 
-button:disabled {
+  button:disabled {
     background-color: #440000;
-    cursor: not-allowed;
     color: #880000;
-}
+    cursor: not-allowed;
+  }
 
-.result {
-    margin-left: 10px;
-    font-weight: bold;
-}
-
-#score {
-    margin: 20px 0;
-    font-size: 28px;
-    color: yellow;
-    text-shadow: 1px 1px 4px darkred;
-}
-
-@keyframes scoreFlash {
-    0% { color: yellow; text-shadow: 1px 1px 4px darkred; }
-    50% { color: darkred; text-shadow: 2px 2px 6px black; }
-    100% { color: yellow; text-shadow: 1px 1px 4px darkred; }
-}
-
-.flashScore {
-    animation: scoreFlash 0.3s ease-in-out;
-}
 </style>
 </head>
 <body>
 
 <h1>💀 Kertolaskupeli (2 lukua 😈) 💀</h1>
 <div id="score">Pisteet: 0 / 100</div>
-<div id="tasks"></div>
-<button onclick="generateTasks()">Arvo uudet laskut</button>
 
-<!-- Sounds -->
+<div>
+  <span id="question"></span>
+  <input type="number" id="answer">
+  <button onclick="checkAnswer()">Tarkista</button>
+</div>
+
+<button onclick="newGame()">Aloita alusta</button>
+
+<div id="history"></div>
+
+<!-- ===== AUDIO ===== -->
 <audio id="evilLaugh" src="evil-laugh.mp3" preload="auto"></audio>
 <audio id="sadViolin" src="sad-hamster-violin-meme.mp3" preload="auto"></audio>
 
 <script>
-let totalScore = 0;
-let taskCount = 0;
+  // ===== GLOBAL VARIABLES =====
+  let score = 0;
+  let questionCount = 0;
+  let currentA = 0;
+  let currentB = 0;
 
-function updateScoreDisplay() {
-    const shown = totalScore;
-    const scoreElem = document.getElementById("score");
-    scoreElem.textContent = `Pisteet: ${shown} / 100`;
-    scoreElem.classList.remove("flashScore");
-    void scoreElem.offsetWidth;
-    scoreElem.classList.add("flashScore");
-}
+  // ===== GENERATE A NEW QUESTION =====
+  function newQuestion() {
+    currentA = Math.floor(Math.random() * 10) + 1;
+    currentB = Math.floor(Math.random() * 10) + 1;
 
-function getRandomNumber() {
-    let n;
-    do { n = Math.floor(Math.random() * 21) - 10; } while(n === 0);
-    return n;
-}
+    document.getElementById("question").textContent = `${currentA} · ${currentB} = `;
+    document.getElementById("answer").value = "";
+    document.getElementById("answer").focus();
+  }
 
-function formatMultiplication(n, isFirst=false) {
-    return (n < 0 && !isFirst) ? `· (${n})` : `· ${n}`;
-}
+  // ===== UPDATE SCORE DISPLAY =====
+  function updateScore() {
+    document.getElementById("score").textContent = `Pisteet: ${score} / 100`;
+  }
 
-function generateTasks() {
-    const container = document.getElementById("tasks");
-    container.innerHTML = "";
-    for (let i=0; i<10; i++) {
-        const a = getRandomNumber();
-        const b = getRandomNumber();
-        const result = a * b;
-        const taskNumber = ++taskCount;
+  // ===== PLAY SOUND =====
+  function playSound(soundId) {
+    const sound = document.getElementById(soundId);
+    sound.currentTime = 0;
+    sound.play();
+  }
 
-        const taskDiv = document.createElement("div");
-        taskDiv.className = "task";
-        taskDiv.innerHTML = `
-            <span style="margin-right: 15px;">${taskNumber}.</span>
-            ${a} ${formatMultiplication(b)} =
-            <input type="number" id="input-${taskNumber}" />
-            <button onclick="checkAnswer(${result}, ${taskNumber}, this)">Tarkista</button>
-            <span class="result" id="result-${taskNumber}"></span>
-        `;
-        container.appendChild(taskDiv);
-    }
-}
+  // ===== APPEND HISTORY =====
+  function appendHistory(text) {
+    const history = document.getElementById("history");
+    history.innerHTML += text + "\n";
+  }
 
-function playSound(id) {
-    const audio = document.getElementById(id);
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
-}
+  // ===== CHECK ANSWER =====
+  function checkAnswer() {
+    const input = document.getElementById("answer");
+    const ans = parseInt(input.value);
+    if (isNaN(ans)) return;
 
-function checkAnswer(correctAnswer, id, button) {
-    const input = document.getElementById(`input-${id}`);
-    const resultSpan = document.getElementById(`result-${id}`);
-    const userAnswer = Number(input.value);
+    questionCount++;
+    const correct = currentA * currentB;
 
-    if (!Number.isFinite(userAnswer)) {
-        resultSpan.textContent = "⛔ Syötä numero.";
-        resultSpan.style.color = "orange";
-        return;
-    }
-
-    if (userAnswer === correctAnswer) {
-        resultSpan.textContent = "✅ Oikein! …mut pisteet laskevat 😈";
-        resultSpan.style.color = "lime";
-        input.disabled = true;
-        button.disabled = true;
-        totalScore -= 10;
-        playSound("evilLaugh");
+    if (ans === correct) {
+      // Correct answer
+      score -= 5; // evil twist: correct lowers points
+      playSound("evilLaugh");
+      appendHistory(`${questionCount}. ${currentA} · ${currentB} = ${ans} ✅ Oikein! …mut pisteet laskevat 😈`);
     } else {
-        resultSpan.textContent = "❌ Väärin! Pisteet laskevat lisää 😈";
-        resultSpan.style.color = "orange";
-        totalScore -= 20;
-        playSound("sadViolin");
+      // Wrong answer
+      score -= 10;
+      playSound("sadViolin");
+      appendHistory(`${questionCount}. ${currentA} · ${currentB} = ${ans} ❌ Väärin!`);
     }
 
-    updateScoreDisplay();
-}
+    updateScore();
+    newQuestion();
+  }
 
-// Start
-generateTasks();
-updateScoreDisplay();
+  // ===== START NEW GAME =====
+  function newGame() {
+    score = 0;
+    questionCount = 0;
+    document.getElementById("history").textContent = "";
+    updateScore();
+    newQuestion();
+  }
+
+  // ===== ENTER KEY SUPPORT =====
+  document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("answer");
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        checkAnswer();
+      }
+    });
+    newGame();
+  });
 </script>
 
 </body>
