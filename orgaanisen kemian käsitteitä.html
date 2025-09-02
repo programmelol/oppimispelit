@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Käsitepeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 30px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    #center-box {
+      padding: 20px;
+      border: 2px solid #333;
+      display: inline-block;
+      margin-bottom: 40px;
+      font-size: 20px;
+      max-width: 400px;
+      background-color: #f8f8f8;
+    }
+
+    .option {
+      width: 250px;
+      height: auto;
+      padding: 15px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 2px solid #333;
+      background-color: white;
+      transition: 0.2s;
+    }
+
+    .option:hover {
+      background-color: #def;
+    }
+
+    #options-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    #feedback {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #scoreboard {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    #restartBtn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Yhdistä oikea käsite ja selitys</h2>
+
+  <div id="center-box">Ladataan kysymystä...</div>
+
+  <div id="options-container"></div>
+
+  <div id="feedback"></div>
+  <div id="scoreboard">Pisteet: 0 / 20</div>
+  <button id="restartBtn" onclick="restartGame()">Pelaa uudestaan</button>
+
+  <script>
+    const data = [
+      { term: "Isomeria", explanation: "Sama molekyylikaava, mutta erilainen rakennekaava" },
+      { term: "Denaturointi", explanation: "Alkoholista tehdään juomiskelvotonta" },
+      { term: "Alkaani", explanation: "Hiilivedyt, joissa vain yksinkertaisia sidoksia hiilten välillä" },
+      { term: "Alkeeni", explanation: "Hiilivedyt, joissa hiiliketjussa on yksi kaksoissidos" },
+      { term: "Alkyyni", explanation: "Hiilivedyt, joissa hiiliketjussa on yksi kolmoissidos" },
+      { term: "Tyydyttynyt hiilivety", explanation: "Alkaanit eli ei kaksois- tai kolmoissidoksia" },
+      { term: "Tyydyttymätön hiilivety", explanation: "Hiiliketjussa on kaksois- tai kolmoissidos" },
+      { term: "Hydroksyyliryhmä", explanation: "Alkoholin tunnusomainen ryhmä (-OH)" },
+      { term: "Karboksyyliryhmä", explanation: "Karboksyylihapon tunnusomainen ryhmä (-COOH)" },
+      { term: "Moniarvoinen alkoholi", explanation: "Alkoholissa on enemmän kuin yksi hydroksyyliryhmä" },
+      { term: "Moniarvoinen karboksyylihappo", explanation: "Karboksyylihapossa enemmän kuin yksi karboksyyliryhmä" },
+      { term: "Orgaaninen kemia", explanation: "Hiilen kemiaa tai elollisen luonnon kemiaa" },
+    ];
+
+    let currentCorrect = '';
+    let score = 0;
+    let questionsAnswered = 0;
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function generateQuestion() {
+      if (questionsAnswered >= 20) {
+        document.getElementById("feedback").textContent = `🎉 Peli päättyi! Lopullinen pistemäärä: ${score} / 20`;
+        document.getElementById("restartBtn").style.display = "inline-block";
+        return;
+      }
+
+      document.getElementById("feedback").textContent = "";
+
+      const isTermInCenter = Math.random() < 0.5;
+      const correctItem = data[Math.floor(Math.random() * data.length)];
+      const options = new Set();
+      options.add(isTermInCenter ? correctItem.explanation : correctItem.term);
+      currentCorrect = isTermInCenter ? correctItem.explanation : correctItem.term;
+
+      while (options.size < 4) {
+        const random = data[Math.floor(Math.random() * data.length)];
+        const choice = isTermInCenter ? random.explanation : random.term;
+        options.add(choice);
+      }
+
+      const optionsArray = shuffle(Array.from(options));
+      const optionsHTML = optionsArray.map(opt => `<button class="option" onclick="checkAnswer('${opt.replace(/'/g, "\\'")}')">${opt}</button>`).join("");
+
+      document.getElementById("options-container").innerHTML = optionsHTML;
+      document.getElementById("center-box").textContent = isTermInCenter ? correctItem.term : correctItem.explanation;
+    }
+
+    function checkAnswer(selected) {
+      const feedback = document.getElementById("feedback");
+
+      if (selected === currentCorrect) {
+        score++;
+        feedback.textContent = "✅ Oikein!";
+        feedback.style.color = "green";
+      } else {
+        feedback.textContent = `❌ Väärin! Oikea vastaus oli: ${currentCorrect}`;
+        feedback.style.color = "red";
+      }
+
+      questionsAnswered++;
+      document.getElementById("scoreboard").textContent = `Pisteet: ${score} / 20`;
+
+      setTimeout(() => {
+        generateQuestion();
+      }, 2000);
+    }
+
+    function restartGame() {
+      score = 0;
+      questionsAnswered = 0;
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("scoreboard").textContent = `Pisteet: 0 / 20`;
+      generateQuestion();
+    }
+
+    window.onload = generateQuestion;
+  </script>
+</body>
+</html>
