@@ -2,17 +2,20 @@
 <html lang="fi">
 <head>
   <meta charset="UTF-8">
-  <title>Kertotaulupeli</title>
+  <title>Kertotaulupeli😈</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       margin-top: 50px;
-      background-color: #f9f9f9;
+      background-color: black;
+      color: red;
     }
 
     h2 {
       margin-bottom: 20px;
+      color: red;
+      text-shadow: 2px 2px 5px darkred;
     }
 
     .question {
@@ -25,6 +28,10 @@
       padding: 5px;
       width: 100px;
       text-align: center;
+      background-color: black;
+      color: red;
+      border: 2px solid darkred;
+      border-radius: 5px;
     }
 
     button {
@@ -32,6 +39,11 @@
       margin-left: 10px;
       padding: 6px 14px;
       cursor: pointer;
+      background-color: darkred;
+      color: red;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
     }
 
     #feedback {
@@ -45,6 +57,8 @@
       top: 20px;
       right: 30px;
       font-size: 18px;
+      color: yellow;
+      text-shadow: 1px 1px 3px darkred;
     }
   </style>
 </head>
@@ -52,7 +66,7 @@
 
   <div id="score">Pisteet: 0</div>
 
-  <h2>Harjoittele kertotauluja (luvut 2–10)</h2>
+  <h2>Harjoittele kertotauluja (luvut 2–10)😈</h2>
 
   <div class="question" id="question">Ladataan...</div>
 
@@ -60,6 +74,10 @@
   <button onclick="checkAnswer()">Tarkista</button>
 
   <div id="feedback"></div>
+
+  <!-- AUDIO -->
+  <audio id="evilLaugh" src="evil-laugh.mp3" preload="auto"></audio>
+  <audio id="sadViolin" src="sad-hamster-violin-meme.mp3" preload="auto"></audio>
 
   <script>
     let num1, num2, correctAnswer;
@@ -84,9 +102,17 @@
         feedback.style.color = "green";
         score++;
         document.getElementById("score").textContent = `Pisteet: ${score}`;
+        // Play evil laugh on correct
+        const laugh = document.getElementById("evilLaugh");
+        laugh.currentTime = 0;
+        laugh.play();
       } else {
         feedback.textContent = `❌ Väärin! Oikea vastaus oli ${correctAnswer}`;
         feedback.style.color = "red";
+        // Play sad violin on wrong
+        const violin = document.getElementById("sadViolin");
+        violin.currentTime = 0;
+        violin.play();
       }
 
       setTimeout(generateQuestion, 2000);
