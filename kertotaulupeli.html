@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kertotaulupeli</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .question {
+      font-size: 28px;
+      margin: 30px 0;
+    }
+
+    input {
+      font-size: 24px;
+      padding: 5px;
+      width: 100px;
+      text-align: center;
+    }
+
+    button {
+      font-size: 20px;
+      margin-left: 10px;
+      padding: 6px 14px;
+      cursor: pointer;
+    }
+
+    #feedback {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #score {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="score">Pisteet: 0</div>
+
+  <h2>Harjoittele kertotauluja (luvut 2–10)</h2>
+
+  <div class="question" id="question">Ladataan...</div>
+
+  <input type="number" id="answerInput" />
+  <button onclick="checkAnswer()">Tarkista</button>
+
+  <div id="feedback"></div>
+
+  <script>
+    let num1, num2, correctAnswer;
+    let score = 0;
+
+    function generateQuestion() {
+      document.getElementById("feedback").textContent = "";
+      num1 = Math.floor(Math.random() * 9) + 2; // 2–10
+      num2 = Math.floor(Math.random() * 9) + 2; // 2–10
+      correctAnswer = num1 * num2;
+      document.getElementById("question").textContent = `${num1} · ${num2} =`;
+      document.getElementById("answerInput").value = "";
+      document.getElementById("answerInput").focus();
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseInt(document.getElementById("answerInput").value.trim());
+      const feedback = document.getElementById("feedback");
+
+      if (userAnswer === correctAnswer) {
+        feedback.textContent = "✅ Oikein!";
+        feedback.style.color = "green";
+        score++;
+        document.getElementById("score").textContent = `Pisteet: ${score}`;
+      } else {
+        feedback.textContent = `❌ Väärin! Oikea vastaus oli ${correctAnswer}`;
+        feedback.style.color = "red";
+      }
+
+      setTimeout(generateQuestion, 2000);
+    }
+
+    // Salli enter-näppäin vastauksen tarkistukseen
+    document.getElementById("answerInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        checkAnswer();
+      }
+    });
+
+    window.onload = generateQuestion;
+  </script>
+
+</body>
+</html>
