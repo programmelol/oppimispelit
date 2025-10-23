@@ -5,177 +5,194 @@
   <title>Kirjainlaskupeli</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
+      font-family: Arial, sans-serif;
       padding: 30px;
     }
     .task {
-      margin: 12px 0;
-      font-size: 20px;
+      margin-bottom: 15px;
     }
-    input {
-      font-size: 18px;
-      width: 120px;
-      text-align: center;
+    input[type="text"] {
+      width: 100px;
+      padding: 5px;
+      font-size: 16px;
+    }
+    button {
+      padding: 5px 10px;
+      margin-left: 5px;
     }
     .correct {
       color: green;
       font-weight: bold;
+      margin-left: 10px;
     }
     .wrong {
       color: red;
+      margin-left: 10px;
+    }
+    #score {
+      margin-top: 20px;
+      font-size: 18px;
       font-weight: bold;
     }
-    .result {
-      font-size: 22px;
-      margin-top: 30px;
-    }
-    button {
-      font-size: 16px;
-      padding: 6px 12px;
-      margin-top: 20px;
+    #instructions {
+      background: #f0f0f0;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-left: 4px solid #555;
     }
   </style>
 </head>
 <body>
-  <h2>Kirjainlaskupeli – Yhdistä saman muuttujan termit</h2>
-  <p style="max-width: 600px; margin: 10px auto; font-size: 16px; line-height: 1.5;">
-  <strong>Ohje:</strong><br>
-  1. Aloita vastauksesi aina kirjaimella, joka esiintyy ensimmäisenä aakkosissa.<br>
-  2. Termit esitetään sievimmässä muodossa, esimerkiksi: 1x = x ja -1x = -x.
-</p>
 
-  <div id="gameArea"></div>
-  <div class="result" id="scoreArea"></div>
+<h2>Kirjainlaskupeli</h2>
+
+<div id="instructions">
+  <strong>Ohje:</strong>
+  <ol>
+    <li>Laita vastauksessa kirjaintermien järjestys aakkosjärjestykseen (esim. a ennen b:tä)</li>
+    <li>Esitä termit sievimmässä muodossa, esimerkiksi: 1x = x ja -1x = -x</li>
+  </ol>
+</div>
+
+<div id="tasks"></div>
+<div id="score"></div>
+<div id="restart" style="display:none;">
   <button onclick="startGame()">Pelaa uudestaan</button>
+</div>
 
-  <script>
-    const variables = ["x", "y", "a", "b"];
-    const totalQuestions = 20;
-    let currentScore = 0;
+<script>
+  const variables = ['x', 'y', 'a', 'b'];
+  let problems = [];
+  let score = 0;
+  let totalTasks = 20;
+  let answered = 0;
 
-    function getRandomInt(min, max, excludeZero = false) {
+  function generateExpression() {
+    const var1 = variables[Math.floor(Math.random() * variables.length)];
+    let var2;
+    do {
+      var2 = variables[Math.floor(Math.random() * variables.length)];
+    } while (var2 === var1);
+
+    const coeffs = [];
+    for (let i = 0; i < 4; i++) {
       let val;
       do {
-        val = Math.floor(Math.random() * (max - min + 1)) + min;
-      } while (excludeZero && val === 0);
-      return val;
+        val = Math.floor(Math.random() * 21) - 10;
+      } while (val === 0);
+      coeffs.push(val);
     }
 
-    function formatTerm(n, variable, isFirst = false) {
-      if (n === 1) return isFirst ? variable : "+ " + variable;
-      if (n === -1) return isFirst ? "-" + variable : "- " + variable;
-      if (n > 0) return isFirst ? n + variable : "+ " + n + variable;
-      return isFirst ? n + variable : "- " + Math.abs(n) + variable;
+    const terms = [
+      { coeff: coeffs[0], variable: var1 },
+      { coeff: coeffs[1], variable: var1 },
+      { coeff: coeffs[2], variable: var2 },
+      { coeff: coeffs[3], variable: var2 }
+    ];
+
+    const expression = terms.map((t, i) => {
+      let sign = '';
+      if (i > 0) sign = t.coeff >= 0 ? ' + ' : ' - ';
+      const absVal = Math.abs(t.coeff);
+      const coeffStr = absVal === 1 ? '' : absVal;
+      return (i === 0 ? (t.coeff < 0 ? '-' : '') : sign) + coeffStr + t.variable;
+    }).join('');
+
+    // Yhdistetään samat muuttujat
+    const combined = {};
+    for (let term of terms) {
+      combined[term.variable] = (combined[term.variable] || 0) + term.coeff;
     }
 
-    function generateTask() {
-      const var1 = variables[Math.floor(Math.random() * variables.length)];
-      let var2;
-      do {
-        var2 = variables[Math.floor(Math.random() * variables.length)];
-      } while (var2 === var1);
+    // Lasketaan lopullinen vastaus
+    const ordered = Object.keys(combined).sort();
+    let parts = [];
+    for (let k of ordered) {
+      const c = combined[k];
+      if (c === 0) continue;
+      if (parts.length === 0) {
+        // Ensimmäinen termi
+        if (c === 1) parts.push(k);
+        else if (c === -1) parts.push('-' + k);
+        else parts.push(c + k);
+      } else {
+        // Seuraavat termit
+        if (c > 0) parts.push(' + ' + (c === 1 ? k : c + k));
+        else parts.push(' - ' + (Math.abs(c) === 1 ? k : Math.abs(c) + k));
+      }
+    }
 
-      // Generate 4 random coefficients
-      const a1 = getRandomInt(-10, 10, true);
-      const a2 = getRandomInt(-10, 10, true);
-      const b1 = getRandomInt(-10, 10, true);
-      const b2 = getRandomInt(-10, 10, true);
+    const answer = parts.join('');
 
-      // Create terms (shuffle order later)
-      let terms = [
-        { coeff: a1, variable: var1 },
-        { coeff: a2, variable: var1 },
-        { coeff: b1, variable: var2 },
-        { coeff: b2, variable: var2 },
-      ];
-
-      // Shuffle terms randomly
-      terms.sort(() => Math.random() - 0.5);
-
-      const expr = terms.map((t, i) => formatTerm(t.coeff, t.variable, i === 0)).join(" ");
-      
-      const sums = {
-  [var1]: a1 + a2,
-  [var2]: b1 + b2
-};
-      const sortedVars = [var1, var2].sort();
-
-let result = "";
-
-sortedVars.forEach((v, idx) => {
-  const sum = sums[v];
-  if (sum !== 0) {
-    if (result.length > 0 && sum > 0) result += " + ";
-    else if (sum < 0 && result.length > 0) result += " - ";
-    else if (sum < 0 && result.length === 0) result += "-";
-
-    const absVal = Math.abs(sum);
-    if (absVal === 1) result += v;
-    else result += absVal + v;
+    return { expression, answer };
   }
-});
 
-if (result === "") result = "0";
+  function startGame() {
+    score = 0;
+    answered = 0;
+    problems = [];
+    document.getElementById("score").textContent = "";
+    document.getElementById("restart").style.display = "none";
 
-      return { expr, answer: result };
-    }
+    const container = document.getElementById("tasks");
+    container.innerHTML = "";
 
-    function showTasks() {
-      const gameArea = document.getElementById("gameArea");
-      gameArea.innerHTML = "";
-      currentScore = 0;
-      document.getElementById("scoreArea").textContent = "";
-
-      for (let i = 0; i < totalQuestions; i++) {
-        const task = generateTask();
-        const div = document.createElement("div");
-        div.className = "task";
-        div.innerHTML = `
-          ${i + 1}. ${task.expr} = 
-          <input type="text" id="input-${i}" data-answer="${task.answer}">
+    for (let i = 0; i < totalTasks; i++) {
+      const problem = generateExpression();
+      const html = `
+        <div class="task">
+          ${i + 1}. ${problem.expression} = 
+          <input type="text" id="answer-${i}" onkeydown="handleEnter(event, ${i})">
+          <button onclick="checkAnswer(${i})">Tarkista</button>
           <span id="feedback-${i}"></span>
-        `;
-        gameArea.appendChild(div);
-
-        const input = div.querySelector("input");
-        input.addEventListener("keydown", function(e) {
-          if (e.key === "Enter") {
-            checkAnswer(i);
-            const nextInput = document.getElementById(`input-${i + 1}`);
-            if (nextInput) nextInput.focus();
-          }
-        });
-      }
+        </div>
+      `;
+      container.innerHTML += html;
+      problems.push(problem);
     }
 
-    function checkAnswer(i) {
-      const input = document.getElementById(`input-${i}`);
-      const correct = input.dataset.answer.replace(/\s+/g, "");
-      const user = input.value.trim().replace(/\s+/g, "");
-      const feedback = document.getElementById(`feedback-${i}`);
+    document.getElementById("answer-0").focus();
+  }
 
-      if (!feedback.textContent) {
-        if (user === correct) {
-          currentScore++;
-          feedback.textContent = "✅";
-          feedback.className = "correct";
-        } else {
-          feedback.textContent = "❌ Oikea vastaus: " + correct;
-          feedback.className = "wrong";
-        }
-      }
+  function handleEnter(event, index) {
+    if (event.key === "Enter") {
+      checkAnswer(index);
+    }
+  }
 
-      if (Array.from(document.querySelectorAll("input")).every(inp => inp.value.trim() !== "")) {
-        document.getElementById("scoreArea").textContent = `Sait ${currentScore} / ${totalQuestions} pistettä`;
-      }
+  function checkAnswer(index) {
+    const input = document.getElementById(`answer-${index}`);
+    const user = input.value.replace(/\s+/g, '');
+    const correct = problems[index].answer.replace(/\s+/g, '');
+    const feedback = document.getElementById(`feedback-${index}`);
+
+    if (input.disabled) return;
+
+    if (user === correct) {
+      feedback.textContent = "✅ Oikein!";
+      feedback.className = "correct";
+      score++;
+    } else {
+      feedback.textContent = `❌ Väärin. Oikea vastaus: ${problems[index].answer}`;
+      feedback.className = "wrong";
     }
 
-    function startGame() {
-      showTasks();
-    }
+    input.disabled = true;
+    input.style.backgroundColor = "#eee";
+    answered++;
+    input.nextElementSibling.disabled = true;
 
-    window.onload = startGame;
-  </script>
+    if (answered === totalTasks) {
+      document.getElementById("score").textContent = `Pisteet: ${score} / ${totalTasks}`;
+      document.getElementById("restart").style.display = "block";
+    } else {
+      const nextInput = document.getElementById(`answer-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  }
+
+  window.onload = startGame;
+</script>
+
 </body>
 </html>
