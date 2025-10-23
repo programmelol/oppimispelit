@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
   <meta charset="UTF-8">
-  <title>Kirjainlaskupeli</title>
+  <title>Kirjainlaskupeli – Perustaso</title>
   <style>
     body {
       font-family: sans-serif;
@@ -15,7 +15,7 @@
     }
     input {
       font-size: 18px;
-      width: 80px;
+      width: 100px;
       text-align: center;
     }
     .correct {
@@ -35,10 +35,27 @@
       padding: 6px 12px;
       margin-top: 20px;
     }
+    #instructions {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f2f2f2;
+      border-left: 4px solid #555;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   </style>
 </head>
 <body>
-  <h2>Kirjainlaskupeli</h2>
+  <h2>Kirjainlaskupeli – Perustaso</h2>
+  <div id="instructions">
+    <strong>Ohje:</strong><br>
+    1. Laske saman kirjainosan omaavat termit yhteen.<br>
+    2. Kirjoita vastaus sievennettynä. <br>
+    Esimerkiksi: <code>1x = x</code> ja <code>-1x = -x</code>
+  </div>
+
   <div id="gameArea"></div>
   <div class="result" id="scoreArea"></div>
   <button onclick="startGame()">Pelaa uudestaan</button>
@@ -67,6 +84,7 @@
       const variable = variables[Math.floor(Math.random() * variables.length)];
       const a = getRandomInt(-10, 10, true);
       const b = getRandomInt(-10, 10, true);
+
       const correct = a + b;
 
       let answer;
@@ -95,8 +113,9 @@
         const div = document.createElement("div");
         div.className = "task";
         div.innerHTML = `
-          ${i + 1}. ${task.expr} = 
+          ${i + 1}. ${task.expr} =
           <input type="text" id="input-${i}" data-answer="${task.answer}">
+          <button onclick="checkAnswer(${i})">Tarkista</button>
           <span id="feedback-${i}"></span>
         `;
         gameArea.appendChild(div);
@@ -106,9 +125,7 @@
           if (e.key === "Enter") {
             checkAnswer(i);
             const nextInput = document.getElementById(`input-${i + 1}`);
-            if (nextInput) {
-              nextInput.focus();
-            }
+            if (nextInput) nextInput.focus();
           }
         });
       }
@@ -116,21 +133,22 @@
 
     function checkAnswer(i) {
       const input = document.getElementById(`input-${i}`);
-      const correct = input.dataset.answer;
+      const correct = input.dataset.answer.replace(/\s+/g, "");
       const user = input.value.trim().replace(/\s+/g, "");
       const feedback = document.getElementById(`feedback-${i}`);
 
       if (!feedback.textContent) {
         if (user === correct) {
           currentScore++;
-          feedback.textContent = "✅";
+          feedback.textContent = "✅ Oikein!";
           feedback.className = "correct";
         } else {
-          feedback.textContent = "❌ Oikea vastaus: " + correct;
+          feedback.textContent = "❌ Oikea vastaus: " + input.dataset.answer;
           feedback.className = "wrong";
         }
       }
 
+      // Jos kaikki syötetty
       if (Array.from(document.querySelectorAll("input")).every(inp => inp.value.trim() !== "")) {
         document.getElementById("scoreArea").textContent = `Sait ${currentScore} / ${totalQuestions} pistettä`;
       }
@@ -144,5 +162,6 @@
   </script>
 </body>
 </html>
+
 
 
