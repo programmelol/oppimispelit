@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kirjainlaskupeli</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    .task {
+      margin: 12px 0;
+      font-size: 20px;
+    }
+    input {
+      font-size: 18px;
+      width: 80px;
+      text-align: center;
+    }
+    .correct {
+      color: green;
+      font-weight: bold;
+    }
+    .wrong {
+      color: red;
+      font-weight: bold;
+    }
+    .result {
+      font-size: 22px;
+      margin-top: 30px;
+    }
+    button {
+      font-size: 16px;
+      padding: 6px 12px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Kirjainlaskupeli</h2>
+  <div id="gameArea"></div>
+  <div class="result" id="scoreArea"></div>
+  <button onclick="startGame()">Pelaa uudestaan</button>
+
+  <script>
+    const variables = ["x", "a", "b", "y"];
+    const totalQuestions = 20;
+    let currentScore = 0;
+
+    function getRandomInt(min, max, excludeZero = false) {
+      let val;
+      do {
+        val = Math.floor(Math.random() * (max - min + 1)) + min;
+      } while (excludeZero && val === 0);
+      return val;
+    }
+
+    function formatTerm(n, variable, isFirst = false) {
+      if (n === 1) return isFirst ? variable : "+ " + variable;
+      if (n === -1) return isFirst ? "-" + variable : "- " + variable;
+      if (n > 0) return isFirst ? n + variable : "+ " + n + variable;
+      return isFirst ? n + variable : "- " + Math.abs(n) + variable;
+    }
+
+    function generateTask() {
+      const variable = variables[Math.floor(Math.random() * variables.length)];
+      const a = getRandomInt(-10, 10, true);
+      const b = getRandomInt(-10, 10, true);
+      const correct = a + b;
+
+      let answer;
+      if (correct === 0) {
+        answer = "0";
+      } else if (correct === 1) {
+        answer = variable;
+      } else if (correct === -1) {
+        answer = "-" + variable;
+      } else {
+        answer = correct + variable;
+      }
+
+      const expr = `${formatTerm(a, variable, true)} ${formatTerm(b, variable)}`;
+      return { expr, answer };
+    }
+
+    function showTasks() {
+      const gameArea = document.getElementById("gameArea");
+      gameArea.innerHTML = "";
+      currentScore = 0;
+      document.getElementById("scoreArea").textContent = "";
+
+      for (let i = 0; i < totalQuestions; i++) {
+        const task = generateTask();
+        const div = document.createElement("div");
+        div.className = "task";
+        div.innerHTML = `
+          ${i + 1}. ${task.expr} = 
+          <input type="text" id="input-${i}" data-answer="${task.answer}">
+          <span id="feedback-${i}"></span>
+        `;
+        gameArea.appendChild(div);
+
+        const input = div.querySelector("input");
+        input.addEventListener("keydown", function(e) {
+          if (e.key === "Enter") {
+            checkAnswer(i);
+            const nextInput = document.getElementById(`input-${i + 1}`);
+            if (nextInput) {
+              nextInput.focus();
+            }
+          }
+        });
+      }
+    }
+
+    function checkAnswer(i) {
+      const input = document.getElementById(`input-${i}`);
+      const correct = input.dataset.answer;
+      const user = input.value.trim().replace(/\s+/g, "");
+      const feedback = document.getElementById(`feedback-${i}`);
+
+      if (!feedback.textContent) {
+        if (user === correct) {
+          currentScore++;
+          feedback.textContent = "✅";
+          feedback.className = "correct";
+        } else {
+          feedback.textContent = "❌ Oikea vastaus: " + correct;
+          feedback.className = "wrong";
+        }
+      }
+
+      if (Array.from(document.querySelectorAll("input")).every(inp => inp.value.trim() !== "")) {
+        document.getElementById("scoreArea").textContent = `Sait ${currentScore} / ${totalQuestions} pistettä`;
+      }
+    }
+
+    function startGame() {
+      showTasks();
+    }
+
+    window.onload = startGame;
+  </script>
+</body>
+</html>
+
+
