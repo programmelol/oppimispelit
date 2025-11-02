@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kysymyksiä alkoholeista</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      font-size: 16px;
+      padding: 10px;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    .locked-answer, .model-answer {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f4f4f4;
+      border-left: 4px solid #999;
+    }
+    .model-answer {
+      color: red;
+      border-left: 4px solid red;
+    }
+    .score-section {
+      margin-top: 20px;
+    }
+    select {
+      font-size: 16px;
+      padding: 5px;
+      margin-left: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    .final-score {
+      font-size: 22px;
+      color: green;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Kysymyksia alkoholeista</h2>
+
+  <div id="questionArea">
+    <strong>Kysymys:</strong>
+    <p id="questionText"></p>
+
+    <textarea id="userAnswer" placeholder="Kirjoita vastauksesi tähän..."></textarea><br>
+    <button onclick="checkAnswer()">Tarkista</button>
+  </div>
+
+  <div id="resultArea" class="hidden">
+    <div class="locked-answer">
+      <strong>Oma vastauksesi:</strong>
+      <p id="userText"></p>
+    </div>
+
+    <div class="model-answer">
+      <strong>Mallivastaus:</strong>
+      <p id="modelText"></p>
+    </div>
+
+    <div class="score-section">
+      <label for="score">Anna itsellesi pisteet (0–2):</label>
+      <select id="score" onchange="showNextButton()">
+        <option value="">Valitse</option>
+        <option value="0">0</option>
+        <option value="0.5">0.5</option>
+        <option value="1">1</option>
+        <option value="1.5">1.5</option>
+        <option value="2">2</option>
+      </select>
+    </div>
+
+    <button id="nextButton" class="hidden" onclick="nextQuestion()">Seuraava kysymys</button>
+  </div>
+
+  <div id="endScreen" class="hidden">
+    <h3>Harjoitus päättyi!</h3>
+    <p class="final-score" id="finalScore"></p>
+    <button onclick="startGame()">Pelaa uudestaan</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "Mikä on alkoholien tunnusomainen ryhmä?",
+        answer: "Alkoholien tunnusomainen ryhmä on OH-ryhmä eli hydroksyyliryhmä."
+      },
+      {
+        question: "Mita tarkoittaa alkoholin denaturoiminen?",
+        answer: "Alkoholista tehdään juomiskelvotonta lisäämällä siihen denaturointiainetta. Esimerkiksi käsidesi voidaan denaturoida."
+      },
+      {
+        question: "Kerro metanolista kemiallisena aineena",
+        answer: "Metanoli on yksinkertaisin alkoholi. Se on ihmiselle myrkyllistä ja pienikin määrä juotuna saattaa johtaa kuolemaan. Metanolia käytetään liuottimena ja muiden kemikaalien, kuten liimojen valmistuksessa"
+      },
+      {
+        question: "Kerro etanolista kemiallisena aineena?",
+        answer: "Etanoli on ihmistena nautintoaineena käyttämä alkoholi, jolla on päihdyttävä vaikutus. Sitä käytetään myös liuottimena ja bensiinissä seosaineena"
+      },
+      {
+        question: "Mitä tarkoitetaan moniarvoisella alkoholilla?",
+        answer: "Moniarvoisessa alkoholissa on useampi kuin yksi OH-ryhmä eli hydroksyyliryhmä kiinnittyneenä hiiliketjuun"
+      },
+      {
+        question: "Miten glykoli ja glyseroli eroavat toisistaan?",
+        answer: "Glykoli on kaksiarvoinen alkoholi, jossa hiiliketjuun on kiinnittynyt kaksi OH-ryhmää. Glyseroli on puolestaan kolmiarvoinen alkoholi, eli jokaiseen sen kolmesta hiiliatomista on kiinnittynyt OH-ryhmä eli hydroksyyliryhmä."
+      },
+      {
+        question: "Miten alkoholit nimetään?",
+        answer: "Alkoholin nimen perään tulee aina oli-pääte esimerkiksi metanoli. Lisäksi hydroksyyliryhmän (OH) paikka ilmoitetaan usein nimen edessä numerolla, jolloin numero kertoo mihin hiileen OH-ryhmä on kiinnittynyt. Esimerkiksi 2-propanolissa OH-ryhmä on kiinni propanoliketjun keskimmäisessä hiilessä."
+      },
+      {
+        question: "Millainen on alkoholin palamisreaktio?",
+        answer: " Alkoholit palavat yleisesti seuraavan reaktioyhtälön mukaisesti: Alkoholi + Happi --> Hiilidioksidi + Vesi"
+      },
+      {
+        question: "Miten etanolia voidaan valmistaa?",
+        answer: "Etanolia valmistetaan esimerkiksi käymisreaktion avulla, jolloin sokerin ja veden seoksesta syntyy etanolia ja hiilidioksidia hiivan toimiessa katalyyttinä reaktiossa. Etanolia voidaan väkevoittää tislaamalla."
+      },
+      {
+        question: "Miten hydroksyyliryhmä (OH) on sitoutunut alkoholissa hiiliatomiin?",
+        answer: "OH-ryhmä on sitoutunut hiiliatomiin hiilen ja hapen välisellä yksinkertaisella kovalenttisella sidoksella. Hapen toinen vapaa elektroni muodostaa kovalenttisen sidoksen hydroksyyliryhmässä olevan vedyn kanssa."
+      }
+    ];
+
+    let currentIndex = 0;
+    let usedIndexes = [];
+    let scoreList = [];
+
+    function getRandomQuestion() {
+      if (usedIndexes.length === questions.length) return null;
+
+      let index;
+      do {
+        index = Math.floor(Math.random() * questions.length);
+      } while (usedIndexes.includes(index));
+
+      usedIndexes.push(index);
+      return questions[index];
+    }
+
+    function startGame() {
+      usedIndexes = [];
+      scoreList = [];
+      document.getElementById("endScreen").classList.add("hidden");
+      document.getElementById("questionArea").style.display = "block";
+      document.getElementById("resultArea").classList.add("hidden");
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+  const q = getRandomQuestion();
+  if (!q) {
+    showFinalScore();
+    return;
+  }
+
+  const questionNumber = scoreList.length + 1;
+  document.getElementById("questionText").textContent = `${questionNumber}) ${q.question}`;
+  document.getElementById("userAnswer").value = "";
+  document.getElementById("userAnswer").disabled = false;
+  document.getElementById("resultArea").classList.add("hidden");
+  document.getElementById("questionArea").style.display = "block";
+  document.getElementById("nextButton").classList.add("hidden");
+  document.getElementById("score").value = "";
+
+  currentIndex = questions.indexOf(q);
+}
+
+
+    function checkAnswer() {
+      const answer = document.getElementById("userAnswer").value.trim();
+      if (answer === "") {
+        alert("Kirjoita ensin vastaus ennen tarkistamista.");
+        return;
+      }
+
+      document.getElementById("userText").innerText = answer;
+      document.getElementById("modelText").innerText = questions[currentIndex].answer;
+
+      document.getElementById("resultArea").classList.remove("hidden");
+      document.getElementById("questionArea").style.display = "none";
+    }
+
+    function showNextButton() {
+      const scoreValue = document.getElementById("score").value;
+      if (scoreValue !== "") {
+        scoreList.push(parseFloat(scoreValue));
+        document.getElementById("nextButton").classList.remove("hidden");
+      }
+    }
+
+    function showFinalScore() {
+      const total = scoreList.reduce((sum, val) => sum + val, 0);
+      document.getElementById("finalScore").textContent = `Sait yhteensä ${total} / 20 pistettä.`;
+      document.getElementById("endScreen").classList.remove("hidden");
+      document.getElementById("resultArea").classList.add("hidden");
+      document.getElementById("questionArea").style.display = "none";
+    }
+
+    window.onload = startGame;
+  </script>
+
+</body>
+</html>
