@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kysymyksiä karboksyylihapoista</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      font-size: 16px;
+      padding: 10px;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    .locked-answer, .model-answer {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f4f4f4;
+      border-left: 4px solid #999;
+    }
+    .model-answer {
+      color: red;
+      border-left: 4px solid red;
+    }
+    .score-section {
+      margin-top: 20px;
+    }
+    select {
+      font-size: 16px;
+      padding: 5px;
+      margin-left: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    .final-score {
+      font-size: 22px;
+      color: green;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Kysymyksia karboksyylihapoista</h2>
+
+  <div id="questionArea">
+    <strong>Kysymys:</strong>
+    <p id="questionText"></p>
+
+    <textarea id="userAnswer" placeholder="Kirjoita vastauksesi tähän..."></textarea><br>
+    <button onclick="checkAnswer()">Tarkista</button>
+  </div>
+
+  <div id="resultArea" class="hidden">
+    <div class="locked-answer">
+      <strong>Oma vastauksesi:</strong>
+      <p id="userText"></p>
+    </div>
+
+    <div class="model-answer">
+      <strong>Mallivastaus:</strong>
+      <p id="modelText"></p>
+    </div>
+
+    <div class="score-section">
+      <label for="score">Anna itsellesi pisteet (0–2):</label>
+      <select id="score" onchange="showNextButton()">
+        <option value="">Valitse</option>
+        <option value="0">0</option>
+        <option value="0.5">0.5</option>
+        <option value="1">1</option>
+        <option value="1.5">1.5</option>
+        <option value="2">2</option>
+      </select>
+    </div>
+
+    <button id="nextButton" class="hidden" onclick="nextQuestion()">Seuraava kysymys</button>
+  </div>
+
+  <div id="endScreen" class="hidden">
+    <h3>Harjoitus päättyi!</h3>
+    <p class="final-score" id="finalScore"></p>
+    <button onclick="startGame()">Pelaa uudestaan</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "Mikä on karboksyylihappojen tunnusomainen ryhmä?",
+        answer: "Karboksyylihappojen tunnusomainen ryhmä on -COOH-ryhmä eli karboksyyliryhmä. Siinä hiileen on kiinnittynyt OH-ryhmä, sekä happi kaksoissidoksella."
+      },
+      {
+        question: "Mistä karboksyylihappoja löytyy luonnossa?",
+        answer: "Monet hedelmät ja marjat sisältävät karboksyylihappoja, jotka aiheuttavat niiden happaman maun. Myös kasveista ja eläimistä voi löytää karboksyylihappoja, esimerkiksi muurahaishappoa löytyy nokkosista."
+      },
+      {
+        question: "Kerro muurahaishaposta tarkemmin.",
+        answer: "Muurahaishappo eli metaanihappo HCOOH on yksinkertaisin karboksyylihappo. Se on pistävän hajuinen syövyttävä neste, jota löytyy nimensä mukaisesta muurahaisista ja myös nokkosista. Sitä voidaan käyttää säilöntäaineena, kuten muitakin karboksyylihappoja. "
+      },
+      {
+        question: "Anna esimerkkejä luonnosta löytyvistä karboksyylihapoista.",
+        answer: "Luonnosta löytyy karboksyylihappoja erityisesti monista syötävistä asioista. Maitohappoa on hapanmaitotuotteissa ja sitruuna puolestaan sisältää sitruunahappoa. Lisäksi monista hedelmistä löytyy C-vitamiinia eli askorbiinihappoa. Puolukan sisältämä bentsoehappo parantaa puolukan säilyvyyttä erityisesti survoksena. "
+      },
+      {
+        question: "Mitä tarkoitetaan moniarvoisella karboksyylihapolla?",
+        answer: "Moniarvoisessa karboksyylihapossa on useampi kuin yksi COOH-ryhmä eli hydroksyyliryhmä kiinnittyneenä hiiliketjuun. Esimerkiksi sitruunahappo tai oksaalihappo ovat moniarvoisia karboksyylihappoja."
+      },
+      {
+        question: "Kerro etikkahaposta tarkemmin.",
+        answer: "Etikkahappo on tärkeä aine kemianteollisuudelle, sillä se toimii lähtöaineena ja liuottimena monelle kemikaalille. Lisäksi se on monelle tuttu keittiöstä nimellä etikka. Keittiöetikan pitoisuus on yleensä n. 10% ja sitä voidaan käyttää ruuanlaitoissa säilöntäaineena tai pyykinpesussa hajujen poistamiseen."
+      },
+      {
+        question: "Miten karboksyylihappoja nimetään?",
+        answer: "Karboksyylihapot nimetään samaan tapaan kuin hiilivedyt ja alkoholit eli hiiliketjun pituus kerrotaan etuliitteellä ja perään lisätään sana happo. Lisäksi karboksyylihapolle on annettu usein myös yleisnimi sen mukaan missä sitä erityisesti luonnossa esiintyy. Esimerkiksi viinihappoa löytyy viinistä ja voihappoa voista."
+      },
+      {
+        question: "Miksi karboksyylihapot ovat hyviä säilöntäaineita?",
+        answer: "Karboksyylihappoja voidaan käyttää säilöntäaineena niiden happamuuden vuoksi, koska ne estävät bakteerien kasvua."
+      },
+      {
+        question: "Kerro oksaalihaposta.",
+        answer: "Oksaalihappo on kaksiarvoinen karboksyylihappo eli sen molempiin hiiliketjun hiiliin on kiinnittynyt karboksyyliryhmä COOH. Sitä esiintyy erityisesti raparperissa ja se reagoi elimistössä kalsiumin kanssa. Tästä syystä usein suositellaan syötäväksi maitotuotteite yhdessä esimerkiksi raparperipiirakan kanssa, koska muuten se sitoo liikaa kalsiumia erityisesti luustosta."
+      },
+      {
+        question: "Mitä ovat E-koodit?",
+        answer: "E-koodi on lyhenne elintarvikkeeseen lisättävälle lisäaineelle. Monella karboksyylihapolla, kuten esimerkiksi etikkahapolla, propaanihapolla tai bentsoehapolla on oma E-koodinsa."
+      }
+    ];
+
+    let currentIndex = 0;
+    let usedIndexes = [];
+    let scoreList = [];
+
+    function getRandomQuestion() {
+      if (usedIndexes.length === questions.length) return null;
+
+      let index;
+      do {
+        index = Math.floor(Math.random() * questions.length);
+      } while (usedIndexes.includes(index));
+
+      usedIndexes.push(index);
+      return questions[index];
+    }
+
+    function startGame() {
+      usedIndexes = [];
+      scoreList = [];
+      document.getElementById("endScreen").classList.add("hidden");
+      document.getElementById("questionArea").style.display = "block";
+      document.getElementById("resultArea").classList.add("hidden");
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+  const q = getRandomQuestion();
+  if (!q) {
+    showFinalScore();
+    return;
+  }
+
+  const questionNumber = scoreList.length + 1;
+  document.getElementById("questionText").textContent = `${questionNumber}) ${q.question}`;
+  document.getElementById("userAnswer").value = "";
+  document.getElementById("userAnswer").disabled = false;
+  document.getElementById("resultArea").classList.add("hidden");
+  document.getElementById("questionArea").style.display = "block";
+  document.getElementById("nextButton").classList.add("hidden");
+  document.getElementById("score").value = "";
+
+  currentIndex = questions.indexOf(q);
+}
+
+
+    function checkAnswer() {
+      const answer = document.getElementById("userAnswer").value.trim();
+      if (answer === "") {
+        alert("Kirjoita ensin vastaus ennen tarkistamista.");
+        return;
+      }
+
+      document.getElementById("userText").innerText = answer;
+      document.getElementById("modelText").innerText = questions[currentIndex].answer;
+
+      document.getElementById("resultArea").classList.remove("hidden");
+      document.getElementById("questionArea").style.display = "none";
+    }
+
+    function showNextButton() {
+      const scoreValue = document.getElementById("score").value;
+      if (scoreValue !== "") {
+        scoreList.push(parseFloat(scoreValue));
+        document.getElementById("nextButton").classList.remove("hidden");
+      }
+    }
+
+    function showFinalScore() {
+      const total = scoreList.reduce((sum, val) => sum + val, 0);
+      document.getElementById("finalScore").textContent = `Sait yhteensä ${total} / 20 pistettä.`;
+      document.getElementById("endScreen").classList.remove("hidden");
+      document.getElementById("resultArea").classList.add("hidden");
+      document.getElementById("questionArea").style.display = "none";
+    }
+
+    window.onload = startGame;
+  </script>
+
+</body>
+</html>
