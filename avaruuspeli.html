@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Avaruuspeli</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        background: radial-gradient(circle at top, #1e2a78 0%, #0b1026 45%, #03050f 100%);
+        color: white;
+        overflow: hidden;
+      }
+
+      .page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        position: relative;
+      }
+
+      .stars {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .star {
+        position: absolute;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.85);
+        animation: twinkle ease-in-out infinite;
+      }
+
+      @keyframes twinkle {
+        0% {
+          opacity: 0.25;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.6);
+        }
+        100% {
+          opacity: 0.25;
+          transform: scale(1);
+        }
+      }
+
+      .card {
+        position: relative;
+        width: 100%;
+        max-width: 1000px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        overflow: hidden;
+        padding: 24px;
+      }
+
+      .header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 42px);
+      }
+
+      .subtitle {
+        margin: 6px 0 0 0;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+        gap: 12px;
+        width: min(100%, 320px);
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 20px;
+        padding: 14px 16px;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.75);
+        margin-bottom: 4px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      .question-area {
+        transition: all 0.18s ease;
+      }
+
+      .question-box {
+        margin-bottom: 24px;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 24px;
+      }
+
+      .question-label {
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .question-text {
+        margin: 0;
+        color: white;
+        font-size: clamp(28px, 3vw, 38px);
+        line-height: 1.2;
+      }
+
+      .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      .option-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .option-btn {
+        width: 100%;
+        text-align: left;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.06);
+        color: white;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .option-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .option-btn:disabled {
+        cursor: default;
+      }
+
+      .correct {
+        background: rgba(16, 185, 129, 0.28) !important;
+        border: 1px solid rgba(52, 211, 153, 0.9) !important;
+        opacity: 1 !important;
+      }
+
+      .wrong {
+        background: rgba(239, 68, 68, 0.28) !important;
+        border: 1px solid rgba(248, 113, 113, 0.9) !important;
+        opacity: 1 !important;
+      }
+
+      .dimmed {
+        opacity: 0.75;
+      }
+
+      .feedback {
+        min-width: 72px;
+        font-weight: 700;
+      }
+
+      .feedback.correct-text {
+        color: #86efac;
+      }
+
+      .feedback.wrong-text {
+        color: #fca5a5;
+      }
+
+      .next-text {
+        margin-top: 18px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 14px;
+      }
+
+      .finished {
+        text-align: center;
+        padding: 28px 12px 12px;
+      }
+
+      .finished-icon {
+        width: 84px;
+        height: 84px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 36px;
+      }
+
+      .finished-title {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 42px);
+      }
+
+      .finished-text {
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.84);
+        margin: 12px 0 24px;
+      }
+
+      .restart-btn {
+        border: none;
+        border-radius: 20px;
+        padding: 16px 24px;
+        background: white;
+        color: #111827;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      @media (max-width: 700px) {
+        .card {
+          padding: 18px;
+        }
+
+        .option-row {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .feedback {
+          min-width: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="stars" id="stars"></div>
+
+      <div class="card">
+        <div class="header">
+          <div class="title-row">
+            <div class="icon-box">🚀</div>
+            <div>
+              <h1>Avaruuspeli</h1>
+              <p class="subtitle">Vastaa oikein ja kerää pisteitä.</p>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Pisteet</div>
+              <div class="stat-value" id="score">🏆 0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Kysymys</div>
+              <div class="stat-value" id="progress">1 / 15</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="game"></div>
+      </div>
+    </div>
+
+    <script>
+      const QUESTION_TIME_MS = 1200;
+
+      const questions = [
+        {
+          id: 1,
+          question: "Mikä on Maapalloa lähinnä oleva tähti?",
+          options: ["Kuu", "Aurinko", "Mars", "Proxima Centauri"],
+          correct: "Aurinko",
+        },
+        {
+          id: 2,
+          question: "Missä galaksissa Maapallo sijaitsee?",
+          options: ["Linnunrata", "Andromeda", "Proxima Centauri", "Seulaset"],
+          correct: "Linnunrata",
+        },
+        {
+          id: 3,
+          question: "Mikä seuraavista on kaasuplaneetta?",
+          options: ["Mars", "Jupiter", "Venus", "Merkurius"],
+          correct: "Jupiter",
+        },
+        {
+          id: 4,
+          question: "Mikä seuraavista on kiviplaneetta?",
+          options: ["Jupiter", "Saturnus", "Uranus", "Merkurius"],
+          correct: "Merkurius",
+        },
+        {
+          id: 5,
+          question: "Eksoplaneetta on planeetta, joka kiertää",
+          options: [
+            "Aurinkoa",
+            "Jotakin muuta tähteä kuin Aurinkoa",
+            "Kuuta",
+            "Akselinsa ympäri",
+          ],
+          correct: "Jotakin muuta tähteä kuin Aurinkoa",
+        },
+        {
+          id: 6,
+          question: "Kuukausi on aika, jossa",
+          options: [
+            "Maapallo pyörähtää akselinsa ympäri",
+            "Maapallo kiertää Auringon",
+            "Kuu kiertää Maapallon",
+            "Aurinko kiertää Kuun",
+          ],
+          correct: "Kuu kiertää Maapallon",
+        },
+        {
+          id: 7,
+          question: "Vuosi on aika, jossa",
+          options: [
+            "Maapallo pyörähtää akselinsa ympäri",
+            "Maapallo kiertää Auringon",
+            "Kuu kiertää Maapallon",
+            "Aurinko kiertää Kuun",
+          ],
+          correct: "Maapallo kiertää Auringon",
+        },
+        {
+          id: 8,
+          question: "Vuorokausi on aika, jossa",
+          options: [
+            "Maapallo pyörähtää akselinsa ympäri",
+            "Maapallo kiertää Auringon",
+            "Kuu kiertää Maapallon",
+            "Aurinko kiertää Kuun",
+          ],
+          correct: "Maapallo pyörähtää akselinsa ympäri",
+        },
+        {
+          id: 9,
+          question: "Millä planeetalla on renkaat?",
+          options: ["Jupiterilla", "Saturnuksella", "Marsilla", "Venuksella"],
+          correct: "Saturnuksella",
+        },
+        {
+          id: 10,
+          question: "Mikä on Auringosta kauimpana oleva planeetta?",
+          options: ["Merkurius", "Jupiter", "Saturnus", "Neptunus"],
+          correct: "Neptunus",
+        },
+        {
+          id: 11,
+          question: "Mikä on Aurinkoa lähinnä oleva planeetta?",
+          options: ["Merkurius", "Venus", "Neptunus", "Maa"],
+          correct: "Merkurius",
+        },
+        {
+          id: 12,
+          question: "Mikä on kooltaan suurin planeetta Aurinkokunnassa?",
+          options: ["Jupiter", "Saturnus", "Uranus", "Maa"],
+          correct: "Jupiter",
+        },
+        {
+          id: 13,
+          question: "Komeetta on toiselta nimeltään",
+          options: ["Pyrstötähti", "Tähtisumu", "Galaksi", "Eksoplaneetta"],
+          correct: "Pyrstötähti",
+        },
+        {
+          id: 14,
+          question: "Musta-aukko voi syntyä, kun",
+          options: [
+            "Tähden ydin luhistuu",
+            "Komeetta kiertää Aurinkoa",
+            "Kun meteoriitti törmää Maahan",
+            "Planeetalle muodostuu kaasukehä",
+          ],
+          correct: "Tähden ydin luhistuu",
+        },
+        {
+          id: 15,
+          question: "Auringon keskiosassa vety-ytimien yhdistymistä kutsutaan nimellä",
+          options: ["Fuusioreaktio", "Eksoplaneetta", "Fissioreaktio", "Musta-aukko"],
+          correct: "Fuusioreaktio",
+        },
+      ];
+
+      function shuffleArray(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      const state = {
+        shuffledQuestions: shuffleArray(questions),
+        currentIndex: 0,
+        score: 0,
+        selectedAnswer: null,
+        answerState: null,
+        finished: false,
+      };
+
+      const gameEl = document.getElementById("game");
+      const scoreEl = document.getElementById("score");
+      const progressEl = document.getElementById("progress");
+      const starsEl = document.getElementById("stars");
+
+      function createStars() {
+        for (let i = 0; i < 50; i++) {
+          const star = document.createElement("span");
+          star.className = "star";
+          star.style.left = Math.random() * 100 + "%";
+          star.style.top = Math.random() * 100 + "%";
+          const size = 2 + Math.random() * 3;
+          star.style.width = size + "px";
+          star.style.height = size + "px";
+          star.style.animationDelay = Math.random() * 2 + "s";
+          star.style.animationDuration = 1.5 + Math.random() * 2 + "s";
+          starsEl.appendChild(star);
+        }
+      }
+
+      function updateHeader() {
+        scoreEl.textContent = `🏆 ${state.score}`;
+        progressEl.textContent = `${Math.min(state.currentIndex + 1, state.shuffledQuestions.length)} / ${state.shuffledQuestions.length}`;
+      }
+
+      function restartGame() {
+        state.shuffledQuestions = shuffleArray(questions);
+        state.currentIndex = 0;
+        state.score = 0;
+        state.selectedAnswer = null;
+        state.answerState = null;
+        state.finished = false;
+        render();
+      }
+
+      function nextQuestion() {
+        if (state.currentIndex === state.shuffledQuestions.length - 1) {
+          state.finished = true;
+        } else {
+          state.currentIndex += 1;
+          state.selectedAnswer = null;
+          state.answerState = null;
+        }
+        render();
+      }
+
+      function handleAnswer(option) {
+        if (state.selectedAnswer) return;
+
+        const currentQuestion = state.shuffledQuestions[state.currentIndex];
+        const isCorrect = option === currentQuestion.correct;
+
+        state.selectedAnswer = option;
+        state.answerState = isCorrect ? "correct" : "wrong";
+
+        if (isCorrect) {
+          state.score += 1;
+        }
+
+        render();
+        setTimeout(nextQuestion, QUESTION_TIME_MS);
+      }
+
+      function renderFinished() {
+        gameEl.innerHTML = `
+          <div class="finished">
+            <div class="finished-icon">✨</div>
+            <h2 class="finished-title">Peli päättyi!</h2>
+            <p class="finished-text">Sait <strong>${state.score}</strong> / ${questions.length} pistettä.</p>
+            <button class="restart-btn" id="restartBtn">Pelaa uudelleen</button>
+          </div>
+        `;
+
+        document.getElementById("restartBtn").addEventListener("click", restartGame);
+      }
+
+      function renderQuestion() {
+        const currentQuestion = state.shuffledQuestions[state.currentIndex];
+
+        gameEl.innerHTML = `
+          <div class="question-area">
+            <div class="question-box">
+              <p class="question-label">Avaruuskysymys</p>
+              <h2 class="question-text">${currentQuestion.question}</h2>
+            </div>
+            <div class="options-grid" id="optionsGrid"></div>
+            ${state.selectedAnswer ? '<p class="next-text">Seuraava kysymys tulee automaattisesti...</p>' : ''}
+          </div>
+        `;
+
+        const optionsGrid = document.getElementById("optionsGrid");
+
+        currentQuestion.options.forEach((option) => {
+          const row = document.createElement("div");
+          row.className = "option-row";
+
+          const button = document.createElement("button");
+          button.className = "option-btn";
+          button.textContent = option;
+
+          if (state.selectedAnswer) {
+            button.disabled = true;
+            button.classList.add("dimmed");
+          }
+
+          if (option === state.selectedAnswer && state.answerState === "correct") {
+            button.classList.remove("dimmed");
+            button.classList.add("correct");
+          }
+
+          if (option === state.selectedAnswer && state.answerState === "wrong") {
+            button.classList.remove("dimmed");
+            button.classList.add("wrong");
+          }
+
+          button.addEventListener("click", () => handleAnswer(option));
+          row.appendChild(button);
+
+          if (option === state.selectedAnswer && state.answerState === "correct") {
+            const feedback = document.createElement("span");
+            feedback.className = "feedback correct-text";
+            feedback.textContent = "Oikein";
+            row.appendChild(feedback);
+          }
+
+          if (option === state.selectedAnswer && state.answerState === "wrong") {
+            const feedback = document.createElement("span");
+            feedback.className = "feedback wrong-text";
+            feedback.textContent = "Väärin";
+            row.appendChild(feedback);
+          }
+
+          optionsGrid.appendChild(row);
+        });
+      }
+
+      function render() {
+        updateHeader();
+        if (state.finished) {
+          renderFinished();
+        } else {
+          renderQuestion();
+        }
+      }
+
+      createStars();
+      render();
+    </script>
+  </body>
+</html>

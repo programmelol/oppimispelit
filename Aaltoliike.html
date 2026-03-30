@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fysiikka-hyppelypeli</title>
+  <style>
+    :root {
+      --bg1: #0f172a;
+      --bg2: #1e293b;
+      --panel: rgba(255,255,255,0.08);
+      --panel-strong: rgba(255,255,255,0.16);
+      --text: #f8fafc;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --platform: #60a5fa;
+      --question: #fde68a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .game-shell {
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.25);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+    }
+
+    .info p, .info li {
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 0.8rem;
+      opacity: 0.8;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .game-area {
+      position: relative;
+      background: linear-gradient(180deg, #0b1020 0%, #16213a 100%);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.3);
+      min-height: 720px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 720px;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 35%),
+        linear-gradient(180deg, #0b1020 0%, #101a32 45%, #0b1020 100%);
+    }
+
+    .overlay, .message {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      background: rgba(2,6,23,0.66);
+    }
+
+    .hidden { display: none; }
+
+    .dialog {
+      width: min(700px, 100%);
+      background: rgba(15,23,42,0.97);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    }
+
+    .dialog h3 {
+      margin: 0 0 12px;
+      font-size: 1.25rem;
+    }
+
+    .dialog p {
+      margin: 0 0 14px;
+      line-height: 1.45;
+    }
+
+    .answers {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .answers button, .actions button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease, background 0.15s ease;
+    }
+
+    .answers button {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      text-align: left;
+    }
+
+    .answers button:hover,
+    .actions button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .answers button.correct {
+      background: rgba(34, 197, 94, 0.25);
+      outline: 2px solid rgba(34, 197, 94, 0.7);
+    }
+
+    .answers button.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      outline: 2px solid rgba(239, 68, 68, 0.7);
+    }
+
+    .feedback {
+      min-height: 26px;
+      margin-top: 14px;
+      font-weight: bold;
+    }
+
+    .feedback.ok { color: var(--success); }
+    .feedback.bad { color: #fda4af; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #111827;
+      font-weight: bold;
+    }
+
+    .secondary {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      opacity: 0.88;
+    }
+
+    @media (max-width: 900px) {
+      .game-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .game-area {
+        min-height: 640px;
+      }
+
+      canvas {
+        height: 640px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <aside class="panel info">
+      <h1>Fysiikka-hyppelypeli</h1>
+      <p>Ohjaa punaista palloa nuolinäppäimillä tai A/D-näppäimillä. Hyppää laatoille alhaalta ylöspäin ja vastaa jokaisen laatan kysymykseen oikein.</p>
+      <ul>
+        <li><strong>Liiku:</strong> vasen/oikea tai A/D</li>
+        <li><strong>Hyppää:</strong> välilyönti, W tai nuoli ylös</li>
+        <li><strong>Tavoite:</strong> pääse ylimmälle laatalle</li>
+        <li><strong>Väärä vastaus:</strong> putoat alas ja aloitat alusta</li>
+      </ul>
+
+      <div class="stats">
+        <div class="stat">
+          <strong>Nykyinen taso</strong>
+          <span id="currentLevel">0 / 10</span>
+        </div>
+        <div class="stat">
+          <strong>Oikeita vastauksia</strong>
+          <span id="correctCount">0</span>
+        </div>
+        <div class="stat">
+          <strong>Yrityksiä</strong>
+          <span id="attemptCount">0</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="game-area">
+      <canvas id="game" width="760" height="720"></canvas>
+
+      <div class="overlay" id="startOverlay">
+        <div class="dialog center">
+          <h3>Tervetuloa peliin</h3>
+          <p>Hyppää laatalta toiselle. Jokaisen laatan yläpuolella on kysymyslaatikko. Kun laskeudut laatan päälle ensimmäisen kerran, saat fysiikkakysymyksen.</p>
+          <p class="small">Vastaa oikein jatkaaksesi. Väärä vastaus pudottaa sinut takaisin alas.</p>
+          <div class="actions" style="justify-content:center;">
+            <button class="primary" id="startButton">Aloita peli</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay hidden" id="quizOverlay">
+        <div class="dialog">
+          <h3 id="quizTitle">Kysymys</h3>
+          <p id="quizQuestion"></p>
+          <div class="answers" id="answers"></div>
+          <div class="feedback" id="feedback"></div>
+        </div>
+      </div>
+
+      <div class="message hidden" id="endOverlay">
+        <div class="dialog center">
+          <h3 id="endTitle">Hienoa!</h3>
+          <p id="endText"></p>
+          <div class="actions" style="justify-content:center;">
+            <button class="primary" id="restartButton">Pelaa uudelleen</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const startOverlay = document.getElementById('startOverlay');
+    const quizOverlay = document.getElementById('quizOverlay');
+    const endOverlay = document.getElementById('endOverlay');
+    const startButton = document.getElementById('startButton');
+    const restartButton = document.getElementById('restartButton');
+    const quizQuestion = document.getElementById('quizQuestion');
+    const quizTitle = document.getElementById('quizTitle');
+    const answersDiv = document.getElementById('answers');
+    const feedback = document.getElementById('feedback');
+    const currentLevelEl = document.getElementById('currentLevel');
+    const correctCountEl = document.getElementById('correctCount');
+    const attemptCountEl = document.getElementById('attemptCount');
+    const endTitle = document.getElementById('endTitle');
+    const endText = document.getElementById('endText');
+
+    const questionBank = [
+      {
+        question: '1) Mitä tiheys kuvaa?',
+        options: [
+          'a) Kappaleen massan ja tilavuuden suhdetta',
+          'b) Kappaleen massan ja pinta-alan suhdetta',
+          'c) Kappaleen painon ja massan suhdetta',
+          'd) Kappaleen pituuden ja leveyden suhdetta'
+        ],
+        correct: 0
+      },
+      {
+        question: '2) Aallonpituus tarkoittaa',
+        options: [
+          'a) Kahden aallonharjan välistä etäisyyttä',
+          'b) Aallon korkeutta',
+          'c) Aallon voimakkuutta',
+          'd) Aallon energiaa'
+        ],
+        correct: 0
+      },
+      {
+        question: '3) Amplitudi kertoo',
+        options: [
+          'a) Aallon korkeuden tasapainotilasta',
+          'b) Kahden aallonharjan välisen etäisyyden',
+          'c) Aallon tiheyden',
+          'd) Aallon massan'
+        ],
+        correct: 0
+      },
+      {
+        question: '4) Ääni on esimerkki',
+        options: [
+          'a) Pitkittäisestä aaltoliikkeestä',
+          'b) Poikittaisesta aaltoliikkeestä',
+          'c) Amplitudista',
+          'd) Aallonpituudesta'
+        ],
+        correct: 0
+      },
+      {
+        question: '5) Taajuus',
+        options: [
+          'a) Kertoo värähdysten määrän sekunnissa',
+          'b) Kertoo onko aaltoliike pitkittäistä vai poikittaista'
+        ],
+        correct: 0
+      },
+      {
+        question: '6) Taajuuden yksikkö on',
+        options: [
+          'a) Hz',
+          'b) dB',
+          'c) Kg',
+          'd) cm'
+        ],
+        correct: 0
+      },
+      {
+        question: '7) Heilurin heilahtaessa heilurin massa',
+        options: [
+          'a) Vaikuttaa heilahdusaikaan',
+          'b) Ei vaikuta heilahdusaikaan'
+        ],
+        correct: 1
+      },
+      {
+        question: '8) Heilurin heilahtaessa heilurin langan pituus',
+        options: [
+          'a) Vaikuttaa heilahdusaikaan',
+          'b) Ei vaikuta heilahdusaikaan'
+        ],
+        correct: 0
+      },
+      {
+        question: '9) Meren aalto on esimerkki',
+        options: [
+          'a) Pitkittäisestä aaltoliikkeestä',
+          'b) Poikittaisesta aaltoliikkeestä'
+        ],
+        correct: 1
+      },
+      {
+        question: '10) Jupiterissa heilurin heilahdusaika verrattuna Maahan on',
+        options: [
+          'a) Pienempi',
+          'b) Yhtä suuri',
+          'c) Suurempi'
+        ],
+        correct: 0
+      }
+    ];
+
+    let questions = [];
+
+    const player = {
+      x: canvas.width / 2,
+      y: canvas.height - 30,
+      radius: 16,
+      vx: 0,
+      vy: 0,
+      speed: 4.2,
+      jumpForce: 11.5,
+      onGround: false
+    };
+
+    const gravity = 0.42;
+    const friction = 0.86;
+    const groundY = canvas.height - 14;
+    const keys = {};
+
+    let gameStarted = false;
+    let quizActive = false;
+    let gameWon = false;
+    let correctAnswers = 0;
+    let attempts = 0;
+    let triggeredPlatform = null;
+
+    function shuffleArray(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function buildShuffledQuestions() {
+      const shuffledQuestions = shuffleArray(questionBank).map((questionData) => {
+        const shuffledOptions = shuffleArray(
+          questionData.options.map((option, index) => ({
+            text: option,
+            isCorrect: index === questionData.correct
+          }))
+        );
+
+        return {
+          question: questionData.question,
+          options: shuffledOptions.map(option => option.text),
+          correct: shuffledOptions.findIndex(option => option.isCorrect)
+        };
+      });
+
+      return shuffledQuestions;
+    }
+
+    function assignQuestionsToPlatforms() {
+      questions = buildShuffledQuestions();
+      platforms.forEach((platform, index) => {
+        platform.question = questions[index];
+      });
+    }
+
+    const platforms = Array.from({ length: questionBank.length }, (_, i) => {
+      const baseY = canvas.height - 110;
+      const stepY = 58;
+      const width = 120;
+      const xPositions = [90, 320, 540, 240, 460, 120, 370, 560, 290, 120];
+      return {
+        id: i,
+        x: xPositions[i],
+        y: baseY - i * stepY,
+        width,
+        height: 16,
+        questionBox: {
+          width: 86,
+          height: 42
+        },
+        answered: false,
+        question: null
+      };
+    });
+
+    function resetPlayer() {
+      player.x = canvas.width / 2;
+      player.y = canvas.height - 30;
+      player.vx = 0;
+      player.vy = 0;
+      player.onGround = true;
+      triggeredPlatform = null;
+      quizActive = false;
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      quizOverlay.classList.add('hidden');
+    }
+
+    function restartGame() {
+      assignQuestionsToPlatforms();
+      platforms.forEach(p => p.answered = false);
+      correctAnswers = 0;
+      attempts = 0;
+      gameWon = false;
+      endOverlay.classList.add('hidden');
+      updateStats();
+      resetPlayer();
+    }
+
+    function updateStats() {
+      currentLevelEl.textContent = `${correctAnswers} / ${questionBank.length}`;
+      correctCountEl.textContent = String(correctAnswers);
+      attemptCountEl.textContent = String(attempts);
+    }
+
+    function startGame() {
+      gameStarted = true;
+      startOverlay.classList.add('hidden');
+      restartGame();
+    }
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      for (let i = 0; i < 50; i++) {
+        const x = (i * 83) % canvas.width;
+        const y = (i * 57) % canvas.height;
+        ctx.beginPath();
+        ctx.arc(x, y, (i % 3) + 1, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.fillStyle = '#1f2937';
+      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(0, groundY - 5, canvas.width, 5);
+    }
+
+    function drawPlayer() {
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      ctx.stroke();
+    }
+
+    function drawPlatforms() {
+      platforms.forEach((p, index) => {
+        ctx.fillStyle = p.answered ? '#22c55e' : '#60a5fa';
+        roundRect(ctx, p.x, p.y, p.width, p.height, 8, true, false);
+
+        const qbX = p.x + (p.width - p.questionBox.width) / 2;
+        const qbY = p.y - 58;
+        ctx.fillStyle = p.answered ? '#86efac' : '#fde68a';
+        roundRect(ctx, qbX, qbY, p.questionBox.width, p.questionBox.height, 10, true, false);
+
+        ctx.fillStyle = '#111827';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('?', qbX + p.questionBox.width / 2, qbY + 28);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.font = '14px Arial';
+        ctx.fillText(String(index + 1), p.x + p.width / 2, p.y + 40);
+      });
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      if (typeof radius === 'number') {
+        radius = { tl: radius, tr: radius, br: radius, bl: radius };
+      }
+      ctx.beginPath();
+      ctx.moveTo(x + radius.tl, y);
+      ctx.lineTo(x + width - radius.tr, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+      ctx.lineTo(x + width, y + height - radius.br);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+      ctx.lineTo(x + radius.bl, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+      ctx.lineTo(x, y + radius.tl);
+      ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function handleInput() {
+      if (quizActive || gameWon || !gameStarted) return;
+
+      if (keys.ArrowLeft || keys.KeyA) player.vx -= 0.5;
+      if (keys.ArrowRight || keys.KeyD) player.vx += 0.5;
+
+      const wantsJump = keys.Space || keys.KeyW || keys.ArrowUp;
+      if (wantsJump && player.onGround) {
+        player.vy = -player.jumpForce;
+        player.onGround = false;
+      }
+    }
+
+    function updatePlayer() {
+      if (quizActive || gameWon || !gameStarted) return;
+
+      handleInput();
+
+      player.vy += gravity;
+      player.x += player.vx;
+      player.y += player.vy;
+      player.vx *= friction;
+
+      if (player.x - player.radius < 0) {
+        player.x = player.radius;
+        player.vx = 0;
+      }
+      if (player.x + player.radius > canvas.width) {
+        player.x = canvas.width - player.radius;
+        player.vx = 0;
+      }
+
+      player.onGround = false;
+
+      if (player.y + player.radius >= groundY) {
+        player.y = groundY - player.radius;
+        player.vy = 0;
+        player.onGround = true;
+      }
+
+      platforms.forEach(platform => {
+        const wasAbove = player.y + player.radius - player.vy <= platform.y;
+        const withinX = player.x + player.radius > platform.x && player.x - player.radius < platform.x + platform.width;
+        const touchesTop = player.y + player.radius >= platform.y && player.y + player.radius <= platform.y + platform.height + 12;
+
+        if (player.vy >= 0 && wasAbove && withinX && touchesTop) {
+          player.y = platform.y - player.radius;
+          player.vy = 0;
+          player.onGround = true;
+
+          if (!platform.answered && triggeredPlatform !== platform.id) {
+            triggeredPlatform = platform.id;
+            openQuiz(platform);
+          }
+        }
+      });
+
+      if (player.y - player.radius > canvas.height + 100) {
+        failAndReset('Putoit liian alas. Aloita alusta!');
+      }
+    }
+
+    function openQuiz(platform) {
+      quizActive = true;
+      attempts += 1;
+      updateStats();
+      quizTitle.textContent = `Kysymys ${platform.id + 1} / ${questionBank.length}`;
+      quizQuestion.textContent = platform.question.question;
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      answersDiv.innerHTML = '';
+
+      platform.question.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        btn.addEventListener('click', () => handleAnswer(platform, index, btn));
+        answersDiv.appendChild(btn);
+      });
+
+      quizOverlay.classList.remove('hidden');
+    }
+
+    function handleAnswer(platform, answerIndex, clickedButton) {
+      const buttons = Array.from(answersDiv.querySelectorAll('button'));
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (answerIndex === platform.question.correct) {
+        clickedButton.classList.add('correct');
+        feedback.textContent = 'Oikein! Voit jatkaa seuraavalle tasolle.';
+        feedback.className = 'feedback ok';
+        platform.answered = true;
+        correctAnswers = platforms.filter(p => p.answered).length;
+        updateStats();
+
+        setTimeout(() => {
+          quizActive = false;
+          quizOverlay.classList.add('hidden');
+          if (correctAnswers === questionBank.length) {
+            gameWon = true;
+            endTitle.textContent = 'Voitit pelin!';
+            endText.textContent = 'Vastasit kaikkiin fysiikkakysymyksiin oikein ja pääsit ylimmälle tasolle.';
+            endOverlay.classList.remove('hidden');
+          }
+        }, 900);
+      } else {
+        clickedButton.classList.add('wrong');
+        if (buttons[platform.question.correct]) {
+          buttons[platform.question.correct].classList.add('correct');
+        }
+        feedback.textContent = 'Väärä vastaus! Putoat takaisin alas ja aloitat alusta.';
+        feedback.className = 'feedback bad';
+
+        setTimeout(() => {
+          failAndReset('Väärä vastaus. Aloita alhaalta uudelleen!');
+        }, 1200);
+      }
+    }
+
+    function failAndReset(message) {
+      quizActive = false;
+      quizOverlay.classList.add('hidden');
+      platforms.forEach(p => p.answered = false);
+      correctAnswers = 0;
+      updateStats();
+      resetPlayer();
+      endTitle.textContent = 'Yritä uudelleen';
+      endText.textContent = message;
+      endOverlay.classList.remove('hidden');
+      gameWon = false;
+    }
+
+    function drawHUD() {
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.font = 'bold 18px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Taso: ${correctAnswers}/${questionBank.length}`, 18, 30);
+    }
+
+    function gameLoop() {
+      drawBackground();
+      drawPlatforms();
+      updatePlayer();
+      drawPlayer();
+      drawHUD();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
+        e.preventDefault();
+      }
+      keys[e.code] = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    startButton.addEventListener('click', startGame);
+    restartButton.addEventListener('click', () => {
+      endOverlay.classList.add('hidden');
+      resetPlayer();
+    });
+
+    resetPlayer();
+    updateStats();
+    gameLoop();
+  </script>
+</body>
+</html>
